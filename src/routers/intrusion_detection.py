@@ -58,19 +58,3 @@ async def get_activity_data():
     return documents
 
 
-@router.post("/add-person", status_code=status.HTTP_201_CREATED)
-async def post_person_identification(person: data_schemas.PersonIdentification):
-    pi: Collection = collections.get("pi")
-    
-    person_dict = person.model_dump()
-    created_at = datetime.datetime.now(datetime.timezone.utc)
-    person_dict.update({"createdAt": created_at})
-    await pi.insert_one(person_dict)
-    return {"detail": "Person added successfully"}
-
-# GET API to fetch all persons (for verification)
-@router.get("/people")
-async def get_people_identification():
-    pi: Collection = collections.get("pi")
-    people = await pi.find()
-    return people
