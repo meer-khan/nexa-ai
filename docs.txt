@@ -1,6 +1,3 @@
-# nexa-ai
-
-
 #Instructions to run backend
 
 ##Navigate to directory "~/Desktop/nexa-ai$" and type command: 
@@ -14,6 +11,3 @@ if some error occurs on database side and get to your linux terminal and type
 after start mongodb server check its status 
 
 `sudo systemctl status mongod`
-
-
-Hit first command again, backend will start working
