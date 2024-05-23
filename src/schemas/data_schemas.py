@@ -5,7 +5,7 @@ class ActivityDetected(BaseModel):
     cameraId: str
 
 class PersonIdentification(BaseModel):
-    person_id: int
-    person_name: str
+    personId: str
+    personName: str
     location: str
 
