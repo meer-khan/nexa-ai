@@ -15,5 +15,7 @@ after start mongodb server check its status
 
 `sudo systemctl status mongod`
 
+NOTE: Ubuntu shuts down mongodb server automatically after machine shutdown
+
 
 Hit first command again, backend will start working
