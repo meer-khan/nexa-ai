@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Response
 from pymongo.collection import Collection
 from src.schemas import data_schemas
 from db.db_models import create_models
@@ -12,27 +12,33 @@ collections = create_models()
 
 
 # Route to add a new camera
-@router.post("/add_camera/")
-async def add_camera(camera_id: str, location: str):
+@router.post("/add_camera")
+async def add_camera(camera_data: data_schemas.AddCamera, response: Response):
+
+    if collections.get("cameras").find_one({"cameraId": camera_data.camera_id}):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera id already exists")
+    
     collections.get("cameras").insert_one({
-        "camera_id": camera_id,
-        "location": location,
-        "createdAt": datetime.datetime.now(datetime.UTC)
+        "cameraId": camera_data.camera_id,
+        "location": camera_data.location,
+        "createdAt": datetime.datetime.now(datetime.timezone.utc)
     })
     return {"status": "success", "message": "Camera added successfully."}
 
 # Route to log an entry or exit event
-@router.post("/log_event/")
+@router.post("/log_event")
 async def log_event(person_id: str, camera_id: str, event_type: str):
     if event_type not in ["entry", "exit"]:
-        raise HTTPException(status_code=400, detail="Invalid event_type. Must be 'entry' or 'exit'.")
+        status
+        return HTTPException(status_code=400, detail="Invalid event_type. Must be 'entry' or 'exit'.")
     
     # Verify camera exists
     camera = collections.get("cameras").find_one({"camera_id": camera_id})
     if not camera:
-        raise HTTPException(status_code=404, detail="Camera not found.")
+        return HTTPException(status_code=404, detail="Camera not found.")
     
-    timestamp = datetime.datetime.now(datetime.UTC)
+    timestamp = datetime.datetime.now(datetime.timezone.utc)
     
     # Insert the event in the EntryExitLogs collection
     collections.get("entry_exit_logs").insert_one({
