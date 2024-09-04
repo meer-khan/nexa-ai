@@ -15,8 +15,8 @@ def create_models()-> Dict[str, Any]:
         # Insert a document into a collection (this will create the database if it doesn't exist)
         collection_intrusion_detection:Collection = existing_db["intrustionDetection"]
         persion_identification:Collection = existing_db["PersonIdentification"]
-        cameras = existing_db["camera"]
-        entry_exit_logs = existing_db["EntryExitLogs"]
+        cameras = existing_db["cameras"]
+        entry_exit_logs = existing_db["entryExitLogs"]
 
         return {
             "cid": collection_intrusion_detection,
