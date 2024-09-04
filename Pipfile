@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = {extras = ["all"], version = "==0.112.2"}
+pydantic = {extras = ["all"], version = "==2.8.2"}
+pymongo = "==4.8.0"
+icecream = "*"
+python-decouple = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
