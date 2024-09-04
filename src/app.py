@@ -4,7 +4,7 @@ import sys
 import pathlib
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
-from src.routers import intrusion_detection, person_identification
+from src.routers import intrusion_detection, person_identification, people_enter_exit
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -23,3 +23,4 @@ app.add_middleware(
 )
 app.include_router(intrusion_detection.router)
 app.include_router(person_identification.router)
+app.include_router(people_enter_exit.router)
