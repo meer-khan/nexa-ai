@@ -9,3 +9,6 @@ class PersonIdentification(BaseModel):
     personName: str
     location: str
 
+class AddCamera(BaseModel): 
+    camera_id: str
+    location:str
