@@ -12,40 +12,39 @@ collections = create_models()
 
 
 # Route to add a new camera
-@router.post("/add_camera")
+@router.post("/add_camera", status_code=status.HTTP_200_OK)
 async def add_camera(camera_data: data_schemas.AddCamera, response: Response):
 
-    if collections.get("cameras").find_one({"cameraId": camera_data.camera_id}):
+    if collections.get("cameras").find_one({"cameraId": camera_data.cameraId}):
         response.status_code = status.HTTP_400_BAD_REQUEST
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera id already exists")
     
     collections.get("cameras").insert_one({
-        "cameraId": camera_data.camera_id,
+        "cameraId": camera_data.cameraId,
         "location": camera_data.location,
+        "cameraType": camera_data.cameraType,
         "createdAt": datetime.datetime.now(datetime.timezone.utc)
     })
     return {"status": "success", "message": "Camera added successfully."}
 
 # Route to log an entry or exit event
-@router.post("/log_event")
-async def log_event(person_id: str, camera_id: str, event_type: str):
-    if event_type not in ["entry", "exit"]:
-        status
-        return HTTPException(status_code=400, detail="Invalid event_type. Must be 'entry' or 'exit'.")
+@router.post("/log_event", status_code=status.HTTP_200_OK)
+async def log_event(log_data : data_schemas.LogEvent, response : Response):
     
     # Verify camera exists
-    camera = collections.get("cameras").find_one({"camera_id": camera_id})
+    camera = collections.get("cameras").find_one({"cameraId": log_data.cameraId})
     if not camera:
-        return HTTPException(status_code=404, detail="Camera not found.")
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera not found.")
     
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     
     # Insert the event in the EntryExitLogs collection
     collections.get("entry_exit_logs").insert_one({
-        "person_id": person_id,
-        "timestamp": timestamp,
-        "camera_id": camera_id,
-        "event_type": event_type
+        "name": log_data.name ,
+        "createdAt": timestamp,
+        "cameraId": log_data.cameraId,
+        "type": log_data.type
     })
     
     return {"status": "success", "message": "Event logged successfully."}
