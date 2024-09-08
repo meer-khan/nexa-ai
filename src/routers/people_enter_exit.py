@@ -51,3 +51,9 @@ async def log_event(log_data : data_schemas.LogEvent, response : Response):
     await broadcast_analysis()
     
     return {"status": "success", "message": "Event logged successfully."}
+
+
+@router.get("/all", status_code=status.HTTP_200_OK)
+async def get_all_locations():
+    locations = collections.get("cameras").distinct("location")
+    return {"locations": locations}

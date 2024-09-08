@@ -55,16 +55,9 @@ async def broadcast_analysis():
         "exits_last_24_hours": count_exits_last_24_hours(),
         "people_in_factory": count_people_in_factory(),
         "known_unknown_people_in_factory": count_known_unknown_people(),
-        # "unknown_people_in_factory": count_known_unknown_people()[1],
         "known_unknown_people_in_factory_last_24_hours" : count_known_unknown_people_last_24_hours(),
-        "people_by_location": {},  # This will be populated for specific locations
         "people_in_factory_last_24_hours": count_people_in_factory_last_24_hours()
     }
-
-    # Get the number of people at each location
-    locations = collections.get("cameras").distinct("location")
-    for location in locations:
-        message["people_by_location"][location] = count_people_by_location(location)
 
     await broadcast(message)
 
