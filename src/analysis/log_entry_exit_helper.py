@@ -14,12 +14,6 @@ def get_last_24_hours_range():
     current_time = get_current_time()
     return current_time - datetime.timedelta(hours=24), current_time
 
-# 1. How many people entered the factory in the last 24 hours?
-# def count_entries_last_24_hours():
-#     start_time, end_time = get_last_24_hours_range()
-#     records = collections.get("entry_exit_logs").count_documents({"createdAt": {"$gte": start_time, "$lte": end_time}})
-#     ic(records)
-#     return records
 
 def count_entries_last_24_hours():
     start_time, end_time = get_last_24_hours_range()
@@ -31,11 +25,6 @@ def count_entries_last_24_hours():
     ic(count_entries_last_24_hours)
     return count_entries_last_24_hours
 
-# 2. How many people exited the factory in the last 24 hours?
-# def count_exits_last_24_hours():
-#     start_time, end_time = get_last_24_hours_range()
-#     return collections.get("entry_exit_logs").count_documents({"createdAt": {"$gte": start_time, "$lte": end_time}, "type": "exit"})
-
 def count_exits_last_24_hours():
     start_time, end_time = get_last_24_hours_range()
     exit_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "exit"})]
@@ -46,21 +35,6 @@ def count_exits_last_24_hours():
     ic(count_exits_last_24_hours)
     return count_exits_last_24_hours
 
-# 3. How many people are currently in the factory?
-# def count_people_in_factory():
-#     total_entries = collections.get("entry_exit_logs").count_documents({"type": "entry"})
-#     total_exits = collections.get("entry_exit_logs").count_documents({"type": "exit"})
-#     return total_entries - total_exits
-
-# def count_people_in_factory():
-#     entry_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "entry"})]
-#     exit_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "exit"})]
-    
-#     total_entries = collections.get("entry_exit_logs").count_documents({"cameraId": {"$in": entry_camera_ids}})
-#     total_exits = collections.get("entry_exit_logs").count_documents({"cameraId": {"$in": exit_camera_ids}})
-#     ic("count_people_in_factory")
-#     ic(total_entries - total_exits)
-#     return total_entries - total_exits
 def count_people_in_factory():
     entry_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "entry"})]
     exit_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "exit"})]
@@ -70,12 +44,6 @@ def count_people_in_factory():
     
     # Count the total number of exits recorded by exit cameras
     total_exits = collections.get("entry_exit_logs").count_documents({"cameraId": {"$in": exit_camera_ids}})
-
-    ic("Entry Cameras:", entry_camera_ids)
-    ic("Exit Cameras:", exit_camera_ids)
-    ic("Total Entries:", total_entries)
-    ic("Total Exits:", total_exits)
-
     # Make sure to avoid negative counts
     people_in_factory = total_entries - total_exits
 
@@ -84,13 +52,6 @@ def count_people_in_factory():
         people_in_factory = 0  # Set to 0 to avoid negative results
     
     return people_in_factory
-# 4. How many known and unknown people are in the factory?
-# def count_known_unknown_people():
-#     known_entries = collections.get("entry_exit_logs").count_documents({"type": "entry", "name": {"$ne": None}})
-#     unknown_entries = collections.get("entry_exit_logs").count_documents({"type": "entry", "name": None})
-#     total_exits = collections.get("entry_exit_logs").count_documents({"type": "exit"})
-#     ic()
-#     return known_entries - total_exits, unknown_entries - total_exits
 
 def count_known_unknown_people():
     known_entries = collections.get("entry_exit_logs").count_documents({
@@ -107,42 +68,20 @@ def count_known_unknown_people():
 
 # 5. How many people are at a particular location (using camera location)?
 # Utility function to count people by location within the specified time range
-def count_people_by_location(location: str, start_time_utc: datetime, end_time_utc: datetime):
-    # Find all cameras at the specified location
-    camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"location": location})]
+# def count_people_by_location(location, start_time_utc: datetime, end_time_utc: datetime):
+#     # Find all cameras at the specified location
+#     camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": location})]
     
-    # Count entries for those cameras within the specified time range
-    entries = collections.get("entry_exit_logs").count_documents({
-        "cameraId": {"$in": camera_ids},
-        "createdAt": {"$gte": start_time_utc, "$lte": end_time_utc}
-    })
+#     # Count entries for those cameras within the specified time range
+#     entries = collections.get("entry_exit_logs").count_documents({
+#         "cameraId": {"$in": camera_ids},
+#         "createdAt": {"$gte": start_time_utc, "$lte": end_time_utc}
+#     })
     
-    return entries
+#     return entries
 
-# 6. How many people are ther in factory in last 24 hours
-# def count_people_in_factory_last_24_hours():
-#     start_time, end_time = get_last_24_hours_range()
 
-#     # Get camera IDs for entry and exit types
-#     entry_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "entry"})]
-#     exit_camera_ids = [cam["cameraId"] for cam in collections.get("cameras").find({"cameraType": "exit"})]
 
-#     # Count entries in the last 24 hours
-#     total_entries_last_24_hours = collections.get("entry_exit_logs").count_documents({
-#         "createdAt": {"$gte": start_time, "$lte": end_time},
-#         "cameraId": {"$in": entry_camera_ids}
-#     })
-
-#     # Count exits in the last 24 hours
-#     total_exits_last_24_hours = collections.get("entry_exit_logs").count_documents({
-#         "createdAt": {"$gte": start_time, "$lte": end_time},
-#         "cameraId": {"$in": exit_camera_ids}
-#     })
-
-#     # The difference gives the number of people currently in the factory in the last 24 hours
-#     ic("count_people_in_factory_last_24_hours")
-#     ic(total_entries_last_24_hours - total_exits_last_24_hours)
-#     return total_entries_last_24_hours - total_exits_last_24_hours
 def count_people_in_factory_last_24_hours():
     start_time, end_time = get_last_24_hours_range()
 
@@ -161,14 +100,6 @@ def count_people_in_factory_last_24_hours():
         "createdAt": {"$gte": start_time, "$lte": end_time},
         "cameraId": {"$in": exit_camera_ids}
     })
-
-    # Debugging logs
-    ic("Start Time:", start_time)
-    ic("End Time:", end_time)
-    ic("Entry Camera IDs:", entry_camera_ids)
-    ic("Exit Camera IDs:", exit_camera_ids)
-    ic("Total Entries in Last 24 Hours:", total_entries_last_24_hours)
-    ic("Total Exits in Last 24 Hours:", total_exits_last_24_hours)
 
     # Calculate the number of people in the factory in the last 24 hours
     people_in_factory_last_24_hours = total_entries_last_24_hours - total_exits_last_24_hours
