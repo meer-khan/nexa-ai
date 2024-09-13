@@ -17,12 +17,14 @@ def create_models()-> Dict[str, Any]:
         persion_identification:Collection = existing_db["PersonIdentification"]
         cameras = existing_db["cameras"]
         entry_exit_logs = existing_db["entryExitLogs"]
+        employees = existing_db["employees"]
 
         return {
             "cid": collection_intrusion_detection,
             "pi":persion_identification,
             "cameras": cameras,
-            "entry_exit_logs": entry_exit_logs
+            "entry_exit_logs": entry_exit_logs,
+            "employees": employees
 
         }
     except Exception as e:
