@@ -23,13 +23,56 @@ Hit first command again, backend will start working
 
 
 
+# HTTP BASED APIs
+
+## API - 1
+  END POINT: **http://127.0.0.1:8000/stats/time-range-stats/**
+
+  ### Body Data:
+  ```json
+{
+  "start_time": "2024-09-13T06:02:00",
+  "end_time": "2024-09-13T06:35:00"
+}
+```
+  
+  ### Data Returned: 
+  ```json
+{
+    "details": {
+        "people_still_in_factory": [],
+        "workers_on_assembly_line": [
+            {
+                "name": "Shahmeer-Khan-assembly-line",
+                "cameraId": "1",
+                "employeeID": "0000",
+                "type": "unknown"
+            }
+        ]
+    }
+}
+```   
 
 
 
+## API-2
 
+END POINT: **http://127.0.0.1:8000/employees/register**
 
+Form Data: 
+``` json
+name: Shahmeer Khan (Text)
+employeeID : 0000 (Text)
 
-Updated: 
+```
+
+### Data Returned: 
+```json
+{
+    "details": "Employee Added Successfully. ID: 1111"
+}
+```
+
 
 
 # WebSockets: 
