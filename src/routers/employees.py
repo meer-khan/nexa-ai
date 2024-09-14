@@ -2,15 +2,11 @@ from fastapi import  Form, HTTPException, APIRouter
 from pymongo.collection import Collection
 from db.db_models import create_models
 from typing_extensions import Dict
-from fastapi.responses import JSONResponse
 
-
-router = APIRouter(tags=["entry-exit-logs"], prefix="/cameras")
+router = APIRouter(tags=["entry-exit-logs"], prefix="/employees")
 collections: Dict[str, Collection] = create_models()
 
-# In-memory storage for employees (use a database in production)
-employees_db = []
-@router.post("/register-employee/")
+@router.post("/register")
 async def register_employee(
     name: str = Form(...), 
     employeeID: str = Form(...)
@@ -25,11 +21,22 @@ async def register_employee(
     
     collections.get("employees").insert_one(new_employee)
 
-    return JSONResponse(content={"message": "Employee registered successfully", "employee": new_employee})
+    return {"details": f"Employee Added Successfully. ID: {employeeID}"}
 
 # GET API to fetch all registered employees
-@router.get("/employees/")
+@router.get("/all")
 async def get_employees():
     # Get all employees from MongoDB
     employees = list(collections.get("employees").find({}, {"_id": 0}))  # Exclude MongoDB's internal _id field
     return employees
+
+
+@router.delete("/delete/{employeeID}")
+async def delete_employee(employeeID: str):
+    # Check if employeeID exists in MongoDB
+    result = collections.get("employees").delete_one({"employeeID": employeeID})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found.")
+
+    return {"details": "successfully deleted the employee"}
