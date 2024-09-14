@@ -15,7 +15,7 @@ from src.analysis.log_entry_exit_helper import (
 from typing_extensions import Dict, List
 from db.db_models import create_models
 
-router = APIRouter(tags=["intrustion-stats"], prefix="/intrusion-stats")
+router = APIRouter(tags=["intrustion-stats"], prefix="/ws/intrusion")
 collections: Dict[str,Collection] = create_models()
 
 
@@ -37,7 +37,7 @@ async def broadcast(message: dict):
         await connection.send_json(message)
 
 
-@router.websocket("/ws/updates")
+@router.websocket("/stats")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
     try:
