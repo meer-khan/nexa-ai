@@ -2,12 +2,8 @@ from fastapi import APIRouter, HTTPException, status
 from pymongo.collection import Collection
 from src.schemas import data_schemas
 from db.db_models import create_models
-from icecream import ic
 import datetime
-# from
-# person",
-# "1": "vechile",
-# "15": "animal",
+
 router = APIRouter(tags=["person-detection"], prefix="/person-detection")
 collections = create_models()
 

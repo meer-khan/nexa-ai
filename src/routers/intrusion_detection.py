@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 from pymongo.collection import Collection
-from typing_extensions import List, Dict
 from src.schemas import data_schemas
 from db.db_models import create_models
 from icecream import ic
 import datetime
-import pytz
-# from
 
 router = APIRouter(tags=["intrusion-detection"], prefix="/intrusion-detection")
 collections = create_models()

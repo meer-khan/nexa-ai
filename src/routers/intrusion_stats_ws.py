@@ -8,7 +8,6 @@ from src.analysis.log_entry_exit_helper import (
     count_entries_last_24_hours,
     count_known_unknown_people,
     count_exits_last_24_hours,
-    count_people_by_location,
     count_people_in_factory,
     count_people_in_factory_last_24_hours, 
     count_known_unknown_people_last_24_hours
@@ -16,7 +15,7 @@ from src.analysis.log_entry_exit_helper import (
 from typing_extensions import Dict, List
 from db.db_models import create_models
 
-router = APIRouter(tags=["intrustion-stats"], prefix="/intrusion-stats")
+router = APIRouter(tags=["intrustion-stats"], prefix="/ws/intrusion")
 collections: Dict[str,Collection] = create_models()
 
 
@@ -38,7 +37,7 @@ async def broadcast(message: dict):
         await connection.send_json(message)
 
 
-@router.websocket("/ws/updates")
+@router.websocket("/stats")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
     try:
