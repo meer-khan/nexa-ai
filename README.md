@@ -60,7 +60,7 @@ Updated:
 
 
 ## 2- Web Socket: 
-  End point: **ws://127.0.0.1:8000/ws/stats/assembly_line_and_24hours_logs**
+  End point: **ws://127.0.0.1:8000/ws/stats/assembly-line-and-24hours-logs**
 
   ### Data Returned: 
   ```json
@@ -132,24 +132,83 @@ Updated:
 
 
 
-## 1- Web Socket: 
-  End point: ws://127.0.0.1:8000/ws/intrusion/stats
+## 3- Web Socket: 
+  End point: **ws://127.0.0.1:8000/ws/todays-visits/all**
 
   ### Data Returned: 
   ```json
-    {
-    "entries_last_24_hours": 7,
-    "exits_last_24_hours": 1,
-    "people_in_factory": 7,
-    "known_unknown_people_in_factory": {
-        "known_entries": 0,
-        "unknown_entries": 11
-    },
-    "known_unknown_people_in_factory_last_24_hours": {
-        "known_entries_last_24hrs": 0,
-        "unknown_entries_last_24hrs": 9
-    },
-    "people_in_factory_last_24_hours": 6
+   {
+    "todays_visits": {
+        "entry_logs": [
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 19:58:29",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:23:36",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:24:48",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:25:49",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:27:45",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:30:38",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            },
+            {
+                "name": "Shahmeer-Khan-gate1",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:32:49",
+                "cameraID": "2",
+                "camera_location": "gate-1"
+            }
+        ],
+        "exit_logs": [
+            {
+                "name": "Shahmeer-Khan-assembly_line",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:45:38",
+                "cameraID": "3",
+                "camera_location": "gate-2"
+            }
+        ],
+        "assembly_line_logs": [
+            {
+                "name": "Shahmeer-Khan-assembly_line",
+                "employeeID": "0000",
+                "time_in_pst": "2024-09-14 21:33:44",
+                "cameraID": "1",
+                "camera_location": "assembly_line_1"
+            }
+        ]
+    }
 }
 ```
 
