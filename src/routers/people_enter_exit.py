@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, status, Response,  WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, status, Response
 from src.routers.intrusion_stats_ws import broadcast_analysis
+from src.routers import last_hour_assembly_line_stats
+from src.routers import todays_visits
+from src.routers import within_building
 from pymongo.collection import Collection
-from typing_extensions import Dict, Any
+from typing_extensions import Dict
 from src.schemas import data_schemas
 from db.db_models import create_models
-from icecream import ic
 import datetime
 
 router = APIRouter(tags=["entry-exit-logs"], prefix="/cameras")
@@ -33,9 +35,10 @@ async def log_event(log_data : data_schemas.LogEvent, response : Response):
     
     # Verify camera exists
     camera = collections.get("cameras").find_one({"cameraId": log_data.cameraId})
-    if not camera:
+    employee = collections.get("employees").find_one({"employeeID": log_data.employeeID})
+    if not camera or not employee:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera not found.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera or Employee not found.")
     
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     
@@ -44,12 +47,15 @@ async def log_event(log_data : data_schemas.LogEvent, response : Response):
         "name": log_data.name ,
         "createdAt": timestamp,
         "cameraId": log_data.cameraId,
+        "employeeID" : log_data.employeeID,
         "type": log_data.type
     })
 
     # Trigger the real-time broadcast after logging the event
     await broadcast_analysis()
-    
+    await last_hour_assembly_line_stats.broadcast_analysis()
+    await todays_visits.broadcast_analysis()
+    await within_building.broadcast_analysis()
     return {"status": "success", "message": "Event logged successfully."}
 
 
