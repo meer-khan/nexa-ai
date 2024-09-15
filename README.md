@@ -229,6 +229,7 @@ employeeID : 0000 (Text)
             "cameraID": "2",
             "camera_location": "gate-1"
         }
-    ]
+    ],
+    "total_count": 1
 }
 ```
