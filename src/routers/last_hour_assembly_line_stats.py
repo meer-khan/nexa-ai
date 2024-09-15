@@ -25,23 +25,12 @@ def get_last_24_hours_range():
 def check_assembly_line_activity_last_60min():
     start_time_60min_utc, end_time_60min_utc = get_last_60_minutes_range()
 
-    # Get time range for the last 24 hours
-    start_time_24hr_utc, end_time_24hr_utc = get_last_24_hours_range()
-
     # Get camera IDs for 'assembly_line' areas
     assembly_line_camera_ids = [
         cam["cameraId"]
-        for cam in collections.get("cameras").find({"cameraType": "assembly_line"}, {"_id": 0})
-    ]
-
-    # Get entry and exit camera IDs
-    entry_camera_ids = [
-        cam["cameraId"]
-        for cam in collections.get("cameras").find({"cameraType": "entry"}, {"_id": 0})
-    ]
-    exit_camera_ids = [
-        cam["cameraId"]
-        for cam in collections.get("cameras").find({"cameraType": "exit"},  {"_id": 0})
+        for cam in collections.get("cameras").find(
+            {"cameraType": "assembly_line"}, {"_id": 0}
+        )
     ]
 
     # Query for workers detected in the 'assembly_line' area in the last 60 minutes
@@ -51,79 +40,29 @@ def check_assembly_line_activity_last_60min():
                 "cameraId": {"$in": assembly_line_camera_ids},
                 "createdAt": {"$gte": start_time_60min_utc, "$lte": end_time_60min_utc},
             },
-             {"_id": 0}
-        )
-    )
-
-    # Query for entry logs in the last 24 hours
-    entries_last_24_hours = list(
-        collections.get("entry_exit_logs").find(
-            {
-                "cameraId": {"$in": entry_camera_ids},
-                "createdAt": {"$gte": start_time_24hr_utc, "$lte": end_time_24hr_utc},
-            },
-             {"_id": 0}
-        )
-    )
-
-    # Query for exit logs in the last 24 hours
-    exits_last_24_hours = list(
-        collections.get("entry_exit_logs").find(
-            {
-                "cameraId": {"$in": exit_camera_ids},
-                "createdAt": {"$gte": start_time_24hr_utc, "$lte": end_time_24hr_utc},
-            },
-             {"_id": 0}
-        )
-    )
-
-    # Query for assembly line logs in the last 24 hours
-    assembly_line_logs_last_24_hours = list(
-        collections.get("entry_exit_logs").find(
-            {
-                "cameraId": {"$in": assembly_line_camera_ids},
-                "createdAt": {"$gte": start_time_24hr_utc, "$lte": end_time_24hr_utc},
-            },
-            {"_id": 0}
+            {"_id": 0},
         )
     )
 
     # Prepare the data to send back via WebSocket
     data_to_send = {
-        "workers_detected_last_60_minutes": [
-            {
-                "employeeID": worker.get("employeeID"),
-                "name": worker.get("name"),
-                "timestamp": worker.get("createdAt").strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for worker in workers_detected_last_60_minutes
-        ],
-        "entries_last_24_hours": [
+        "workers_detected_last_60min_assembly_line": [
             {
                 "employeeID": log.get("employeeID"),
                 "name": log.get("name"),
-                "timestamp": log.get("createdAt").strftime('%Y-%m-%d %H:%M:%S'),
+                "timestamp": log.get("createdAt").strftime("%Y-%m-%d %H:%M:%S"),
             }
-            for log in entries_last_24_hours
-        ],
-        "exits_last_24_hours": [
-            {
-                "employeeID": log.get("employeeID"),
-                "name": log.get("name"),
-                "timestamp": log.get("createdAt").strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for log in exits_last_24_hours
-        ],
-        "assembly_line_logs_last_24_hours": [
-            {
-                "employeeID": log.get("employeeID"),
-                "name": log.get("name"),
-                "timestamp": log.get("createdAt").strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for log in assembly_line_logs_last_24_hours
+            for log in workers_detected_last_60_minutes
         ],
     }
-    ic(data_to_send)
+    data_to_send.update(
+        {
+            "total_count": len(
+                data_to_send.get("workers_detected_last_60min_assembly_line")
+            ),
+
+        }
+    )
     return data_to_send
 
 
