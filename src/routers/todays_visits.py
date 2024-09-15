@@ -52,7 +52,7 @@ def fetch_last_24_hours_logs():
                 "cameraId": {"$in": entry_camera_ids},
                 "createdAt": {"$gte": start_time_utc, "$lte": end_time_utc},
             },
-             {"_id": 0}
+            {"_id": 0},
         )
     )
 
@@ -63,7 +63,7 @@ def fetch_last_24_hours_logs():
                 "cameraId": {"$in": exit_camera_ids},
                 "createdAt": {"$gte": start_time_utc, "$lte": end_time_utc},
             },
-             {"_id": 0}
+            {"_id": 0},
         )
     )
 
@@ -74,13 +74,15 @@ def fetch_last_24_hours_logs():
                 "cameraId": {"$in": assembly_line_camera_ids},
                 "createdAt": {"$gte": start_time_utc, "$lte": end_time_utc},
             },
-             {"_id": 0}
+            {"_id": 0},
         )
     )
 
     # Fetch camera details like location for each camera ID
     def get_camera_location(camera_id):
-        camera = collections.get("cameras").find_one({"cameraId": camera_id},  {"_id": 0})
+        camera = collections.get("cameras").find_one(
+            {"cameraId": camera_id}, {"_id": 0}
+        )
         return camera.get("location", "unknown")
 
     # Process the logs to return required details
@@ -104,7 +106,6 @@ def fetch_last_24_hours_logs():
     processed_entry_logs = process_logs(entry_logs)
     processed_exit_logs = process_logs(exit_logs)
     processed_assembly_line_logs = process_logs(assembly_line_logs)
-
     # Return the processed data
     return {
         "entry_logs": processed_entry_logs,
@@ -133,6 +134,7 @@ async def broadcast(message: dict):
 @router.websocket("/all")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
+    await broadcast_analysis()
     try:
         while True:
             await websocket.receive_text()  # Keep the connection alive
@@ -145,5 +147,18 @@ async def broadcast_analysis():
     message = {
         "todays_visits": fetch_last_24_hours_logs(),
     }
+    message.get("todays_visits").update(
+        {
+            "total_assembly_line_logs": len(
+                message.get("todays_visits").get("assembly_line_logs")
+            ), 
+            "total_entry_logs": len(
+                message.get("todays_visits").get("entry_logs")
+            ), 
+            "total_exit_logs":  len(
+                message.get("todays_visits").get("exit_logs")
+            )
+        }
+    )
 
     await broadcast(message)

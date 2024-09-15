@@ -40,6 +40,7 @@ async def broadcast(message: dict):
 @router.websocket("/stats")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
+    await broadcast_analysis()
     try:
         while True:
             await websocket.receive_text()  # Keep the connection alive
