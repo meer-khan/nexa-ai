@@ -147,6 +147,7 @@ async def broadcast(message: dict):
 @router.websocket("/assembly-line-and-24hours-logs")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
+    await broadcast_analysis()
     try:
         while True:
             await websocket.receive_text()  # Keep the connection alive
@@ -157,7 +158,7 @@ async def websocket_endpoint(websocket: WebSocket):
 # Function to broadcast analysis results to connected clients
 async def broadcast_analysis():
     message = {
-        "60_minutes_assembly_line_results": check_assembly_line_activity_last_60min(),
+        "last_60min_results": check_assembly_line_activity_last_60min(),
     }
     ic(message)
     await broadcast(message)
