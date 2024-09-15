@@ -16,7 +16,7 @@ collections: Dict[str, Collection] = create_models()
 
 
 # Route to add a new camera
-@router.post("/add-camera", status_code=status.HTTP_200_OK)
+@router.post("/add", status_code=status.HTTP_200_OK)
 async def add_camera(camera_data: data_schemas.AddCamera, response: Response):
     if collections.get("cameras").find_one({"cameraId": camera_data.cameraId}):
         response.status_code = status.HTTP_400_BAD_REQUEST
