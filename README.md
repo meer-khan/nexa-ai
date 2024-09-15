@@ -108,7 +108,7 @@ employeeID : 0000 (Text)
   ### Data Returned: 
   ```json
 {
-    "60_minutes_assembly_line_results": {
+    "last_60min_results": {
         "workers_detected_last_60_minutes": [
             {
                 "employeeID": "0000",
