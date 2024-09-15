@@ -135,7 +135,7 @@ employeeID : 0000 (Text)
 
   ### Data Returned: 
   ```json
-   {
+  {
     "todays_visits": {
         "entry_logs": [
             {
@@ -146,44 +146,9 @@ employeeID : 0000 (Text)
                 "camera_location": "gate-1"
             },
             {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:23:36",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:24:48",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:25:49",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:27:45",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:30:38",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:32:49",
+                "name": "Arslan",
+                "employeeID": "1111",
+                "time_in_pst": "2024-09-15 12:40:40",
                 "cameraID": "2",
                 "camera_location": "gate-1"
             }
@@ -195,7 +160,21 @@ employeeID : 0000 (Text)
                 "time_in_pst": "2024-09-14 21:45:38",
                 "cameraID": "3",
                 "camera_location": "gate-2"
-            }
+            },
+            {
+                "name": "Arslan",
+                "employeeID": "1111",
+                "time_in_pst": "2024-09-15 12:19:37",
+                "cameraID": "3",
+                "camera_location": "gate-2"
+            },
+            {
+                "name": "Arslan",
+                "employeeID": "1111",
+                "time_in_pst": "2024-09-15 12:21:02",
+                "cameraID": "3",
+                "camera_location": "gate-2"
+            },
         ],
         "assembly_line_logs": [
             {
@@ -204,8 +183,11 @@ employeeID : 0000 (Text)
                 "time_in_pst": "2024-09-14 21:33:44",
                 "cameraID": "1",
                 "camera_location": "assembly_line_1"
-            }
-        ]
+            },
+        ],
+        "total_assembly_line_logs": 1,
+        "total_entry_logs": 2,
+        "total_exit_logs": 3
     }
 }
 ```
