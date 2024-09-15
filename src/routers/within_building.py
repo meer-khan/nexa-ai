@@ -220,5 +220,6 @@ async def broadcast_analysis():
     message = {
         "employees_in_building": fetch_people_still_in_factory(),
     }
+    message.update({"total_count": len(message.get("employees_in_building"))})
 
     await broadcast(message)
