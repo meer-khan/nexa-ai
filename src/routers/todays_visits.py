@@ -9,7 +9,6 @@ from pymongo.collection import Collection
 from typing_extensions import Dict, List
 from db.db_models import create_models
 import pytz
-from icecream import ic
 
 router = APIRouter(tags=["todays-visits"], prefix="/ws/todays-visits")
 collections: Dict[str, Collection] = create_models()
