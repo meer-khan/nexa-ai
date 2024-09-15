@@ -220,67 +220,15 @@ employeeID : 0000 (Text)
 
   ### Data Returned: 
   ```json
-   {
-    "todays_visits": {
-        "people_not_exited": [
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-13 01:02:50",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 19:58:29",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:23:36",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:24:48",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:25:49",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:27:45",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:30:38",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            },
-            {
-                "name": "Shahmeer-Khan-gate1",
-                "employeeID": "0000",
-                "time_in_pst": "2024-09-14 21:32:49",
-                "cameraID": "2",
-                "camera_location": "gate-1"
-            }
-        ],
-        "people_not_exited_and_not_assembly_line": []
-    }
+{
+    "employees_in_building": [
+        {
+            "name": "Shahmeer-Khan-entry",
+            "employeeID": "0000",
+            "time_in_pst": "2024-09-15 12:09:36",
+            "cameraID": "2",
+            "camera_location": "gate-1"
+        }
+    ]
 }
 ```
