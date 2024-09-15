@@ -144,7 +144,7 @@ async def broadcast(message: dict):
         await connection.send_json(message)
 
 
-@router.websocket("/assembly_line_and_24hours_logs")
+@router.websocket("/assembly-line-and-24hours-logs")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
     try:
