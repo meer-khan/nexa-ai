@@ -109,64 +109,19 @@ employeeID : 0000 (Text)
   ```json
 {
     "last_60min_results": {
-        "workers_detected_last_60_minutes": [
+        "workers_detected_last_60min_assembly_line": [
             {
                 "employeeID": "0000",
-                "name": "Shahmeer-Khan-assembly_line",
-                "timestamp": "2024-09-14 21:33:44"
+                "name": "Shahmeer-Khan-entry",
+                "timestamp": "2024-09-15 11:42:53"
+            },
+            {
+                "employeeID": "0000",
+                "name": "Shahmeer-Khan-entry",
+                "timestamp": "2024-09-15 12:03:10"
             }
         ],
-        "entries_last_24_hours": [
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 19:58:29"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:23:36"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:24:48"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:25:49"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:27:45"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:30:38"
-            },
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-gate1",
-                "timestamp": "2024-09-14 21:32:49"
-            }
-        ],
-        "exits_last_24_hours": [
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-assembly_line",
-                "timestamp": "2024-09-14 21:45:38"
-            }
-        ],
-        "assembly_line_logs_last_24_hours": [
-            {
-                "employeeID": "0000",
-                "name": "Shahmeer-Khan-assembly_line",
-                "timestamp": "2024-09-14 21:33:44"
-            }
-        ]
+        "total_count": 2
     }
 }
 ```
