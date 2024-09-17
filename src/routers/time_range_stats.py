@@ -9,7 +9,6 @@ from db.db_models import create_models
 import pytz
 from src.schemas.data_schemas import CountPeople
 import datetime
-from icecream import ic
 
 # MongoDB connection
 router = APIRouter(tags=["timerange-stats"], prefix="/stats")
@@ -30,7 +29,6 @@ def count_people_in_time_range(start_time_pst: datetime, end_time_pst: datetime)
     # Convert the PST times to UTC
     start_time_utc = convert_pst_to_utc(start_time_pst)
     end_time_utc = convert_pst_to_utc(end_time_pst)
-    ic(start_time_utc, end_time_utc)
     # Get all camera IDs of entry and exit types
     entry_camera_ids = [
         cam["cameraId"]
@@ -40,7 +38,6 @@ def count_people_in_time_range(start_time_pst: datetime, end_time_pst: datetime)
         cam["cameraId"]
         for cam in collections.get("cameras").find({"cameraType": "exit"})
     ]
-    ic(entry_camera_ids, exit_camera_ids)
     # Get all records of people who entered the factory but did not exit till the start time
     entries_before_start_time = collections.get("entry_exit_logs").find(
         {
@@ -50,8 +47,6 @@ def count_people_in_time_range(start_time_pst: datetime, end_time_pst: datetime)
         }
     )
 
-    for i in entries_before_start_time:
-        ic(i)
     exits_before_start_time = collections.get("entry_exit_logs").find(
         {
             "cameraId": {"$in": exit_camera_ids},
@@ -59,16 +54,10 @@ def count_people_in_time_range(start_time_pst: datetime, end_time_pst: datetime)
             "type": "exit",
         }
     )
-
-    for i in exits_before_start_time:
-        ic(i)
     # Find people who entered but haven't exited
     entry_ids = {entry["employeeID"] for entry in entries_before_start_time}
-    ic(entry_ids)
     exit_ids = {exit["employeeID"] for exit in exits_before_start_time}
-    ic(exit_ids)
     people_still_in_factory = list(entry_ids - exit_ids)
-    ic(people_still_in_factory)
 
     # Get all workers detected on 'assembly_line' cameras within the specified time range
     assembly_line_camera_ids = [
@@ -93,7 +82,7 @@ def count_people_in_time_range(start_time_pst: datetime, end_time_pst: datetime)
 
 
 # API to get the count of people detected at a specific location within a time range
-@router.get("/time-range-stats")
+@router.post("/time-range-stats")
 async def count_people(time_range: CountPeople):
     try:
         results = count_people_in_time_range(
