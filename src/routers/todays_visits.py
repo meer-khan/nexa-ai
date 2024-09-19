@@ -8,7 +8,7 @@ from fastapi import (
 from pymongo.collection import Collection
 from typing_extensions import Dict, List
 from db.db_models import create_models
-import pytz
+from utils.time_utilities import convert_utc_to_pst
 
 router = APIRouter(tags=["todays-visits"], prefix="/ws/todays-visits")
 collections: Dict[str, Collection] = create_models()
@@ -19,12 +19,6 @@ def get_last_24_hours_utc_range():
     current_time_utc = datetime.now(timezone.utc)
     past_time_utc = current_time_utc - timedelta(hours=24)
     return past_time_utc, current_time_utc
-
-
-# Function to convert UTC to Pakistan Standard Time (PST)
-def convert_utc_to_pst(utc_time: datetime):
-    pst_timezone = pytz.timezone("Asia/Karachi")  # Pakistan Standard Time
-    return utc_time.astimezone(pst_timezone)
 
 
 # Main function to fetch events from the last 24 hours
