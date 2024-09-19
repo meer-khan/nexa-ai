@@ -2,7 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pymongo.collection import Collection
 from db.db_models import create_models
 from typing_extensions import Dict, List
-from icecream import ic
+from utils.time_utilities import convert_utc_to_pst
 import datetime
 
 router = APIRouter(tags=["timerange-stats"], prefix="/ws/stats")
@@ -50,7 +50,7 @@ def check_assembly_line_activity_last_60min():
             {
                 "employeeID": log.get("employeeID"),
                 "name": log.get("name"),
-                "timestamp": log.get("createdAt").strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": convert_utc_to_pst(log.get("createdAt")).strftime("%Y-%m-%d %H:%M:%S"),
             }
             for log in workers_detected_last_60_minutes
         ],
@@ -99,5 +99,4 @@ async def broadcast_analysis():
     message = {
         "last_60min_results": check_assembly_line_activity_last_60min(),
     }
-    ic(message)
     await broadcast(message)
