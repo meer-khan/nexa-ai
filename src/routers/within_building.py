@@ -15,7 +15,6 @@ router = APIRouter(tags=["within-building-emergency"], prefix="/ws/emergency")
 collections: Dict[str, Collection] = create_models()
 
 
-# Main function to fetch people who entered, but not exited, and exclude assembly_line detections
 def fetch_people_still_in_factory():
     # Get camera IDs for entry, exit, and assembly line types
     entry_camera_ids = [
@@ -48,7 +47,7 @@ def fetch_people_still_in_factory():
     assembly_line_employee_times = {log["employeeID"]: log["createdAt"] for log in assembly_line_logs}
 
     # Step 5: Filter people who entered and didn't exit or weren't detected at the assembly line
-    still_in_factory = []
+    still_in_factory = {}
     for entry in all_entries:
         employee_id = entry["employeeID"]
         entry_time = entry["createdAt"]
@@ -61,8 +60,9 @@ def fetch_people_still_in_factory():
         if employee_id in assembly_line_employee_times and assembly_line_employee_times[employee_id] > entry_time:
             continue  # Person detected at assembly line after entry, so skip
 
-        # If they neither exited nor detected at assembly line, add them to the list
-        still_in_factory.append(entry)
+        # If they neither exited nor detected at assembly line, ensure they are only added once
+        if employee_id not in still_in_factory:
+            still_in_factory[employee_id] = entry
 
     # Helper function to fetch camera location by cameraID
     def get_camera_location(camera_id):
@@ -72,7 +72,7 @@ def fetch_people_still_in_factory():
     # Helper function to process logs and return relevant data
     def process_logs(logs):
         processed_logs = []
-        for log in logs:
+        for log in logs.values():
             pst_time = convert_utc_to_pst(log["createdAt"])
             camera_location = get_camera_location(log["cameraId"])
             processed_logs.append({
@@ -84,8 +84,9 @@ def fetch_people_still_in_factory():
             })
         return processed_logs
 
-    # Process the logs and return the final list of people still in the factory
+    # Return processed logs for people still in the factory
     return process_logs(still_in_factory)
+
 
 
 

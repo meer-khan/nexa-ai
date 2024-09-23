@@ -53,11 +53,11 @@ async def log_event(log_data: data_schemas.LogEvent, response: Response):
 
     # Fetch the last log for the same employee
     last_log = collections.get("entry_exit_logs").find_one(
-        {"employeeID": log_data.employeeID},
+        {"employeeID": log_data.employeeID, "cameraId": log_data.cameraId },
         sort=[("createdAt", -1)]
     )
 
-    # If there is a last log and it's within 10 seconds, reject the new log
+    # If there is a last log and it's within 60 seconds, reject the new log
     if last_log:
         last_log_time = last_log["createdAt"]
 
@@ -67,10 +67,10 @@ async def log_event(log_data: data_schemas.LogEvent, response: Response):
 
         # Calculate the time difference
         time_diff = timestamp - last_log_time
-        if time_diff.total_seconds() <= 10:
+        if time_diff.total_seconds() <= 60:
             return {
                 "status": "not added",
-                "message": "Data received but not added to the database due to the 10-second rule."
+                "message": "Data received but not added to the database due to the 60-second rule."
             }
 
     # Insert the event in the EntryExitLogs collection
