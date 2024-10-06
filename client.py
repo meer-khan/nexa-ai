@@ -9,11 +9,13 @@ import json
 
 
 data = {
-  "personId": "00998877",
-  "personName": "Shahmeer",
-  "location": "COVE i10/3"
+    "cameraId" : "2",
+    "name" : "Shahmeer",
+    "type" : "unknown",
+    "employeeID": "0000"
 }
-url = "http://127.0.0.1:8000/person-detection/person"
+url = "http://127.0.0.1:8000/cameras/log-event"
 
-response = requests.post(url=url, json=data)
-print(response.text)
+for i in range(0,100):
+  response = requests.post(url=url, json=data)
+# print(response.text)
