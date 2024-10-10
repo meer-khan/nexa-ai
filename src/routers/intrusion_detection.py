@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, status
 from pymongo.collection import Collection
 from src.schemas import data_schemas
 from db.db_models import create_models
-from icecream import ic
 import datetime
 
 router = APIRouter(tags=["intrusion-detection"], prefix="/intrusion-detection")
@@ -48,15 +47,9 @@ async def get_activity_data():
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No records found"
         )
-    ic(documents)
     # Optionally, transform the '_id' field to 'id' if needed
     for doc in documents:
         doc["id"] = str(doc.pop("_id"))
-
-    ic(documents)
-
-    
-    
 
     return documents
 
