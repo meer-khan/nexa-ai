@@ -10,6 +10,9 @@ pymongo = "==4.8.0"
 icecream = "*"
 python-decouple = "*"
 pytz = "==2024.1"
+munch = "*"
+passlib = "*"
+bcrypt = "*"
 
 [dev-packages]
 
