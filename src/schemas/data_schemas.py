@@ -53,7 +53,7 @@ class Login(BaseModel):
 
 class Signup(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
-    userName: Annotated[
+    companyName: Annotated[
         str, StringConstraints(strip_whitespace=False, max_length=100, min_length=2)
     ]
     email: EmailStr
