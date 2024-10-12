@@ -4,6 +4,7 @@ from fastapi.security.oauth2 import OAuth2PasswordBearer
 from typing_extensions import Dict, Tuple
 from fastapi import Depends, HTTPException, status
 from decouple import config
+from icecream import ic
 import uuid
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -12,9 +13,9 @@ oauth_scheme = OAuth2PasswordBearer(tokenUrl="login")
 SECRET_KEY_ACCESS = config("SECRET_KEY_ACCESS")
 SECRET_KEY_REFRESH = config("SECRET_KEY_REFRESH")
 ALGORITHM = config("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES")
-REFRESH_TOKEN_EXPIRE_DAYS = config("REFRESH_TOKEN_EXPIRE_DAYS")
-REFRESH_TOKEN_EXPIRE_MINUTES = config("REFRESH_TOKEN_EXPIRE_MINUTES")
+ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
+REFRESH_TOKEN_EXPIRE_DAYS = config("REFRESH_TOKEN_EXPIRE_DAYS", cast=int)
+REFRESH_TOKEN_EXPIRE_MINUTES = config("REFRESH_TOKEN_EXPIRE_MINUTES", cast=int)
 ISS = config("ISS")
 
 
@@ -34,7 +35,6 @@ def verify_token(token: str, credentials_exception) -> Dict:
         if (
             payload.get("iss") != ISS
             or payload.get("sub") is None
-            or payload.get("ver") is None
         ):
             raise credentials_exception
         return payload
