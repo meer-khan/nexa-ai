@@ -16,6 +16,7 @@ from src.routers import (
     todays_visits,
     within_building
 )
+from src.routers.user_management import login, signup
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -41,4 +42,5 @@ app.include_router(employees.router)
 app.include_router(last_hour_assembly_line_stats.router)
 app.include_router(todays_visits.router)
 app.include_router(within_building.router)
-
+app.include_router(login.router)
+app.include_router(signup.router)
