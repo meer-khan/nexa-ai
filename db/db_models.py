@@ -25,7 +25,7 @@ def create_models()-> Dict[str, Any]:
         entry_exit_logs = existing_db["entryExitLogs"]
         employees = existing_db["employees"]
         accounts = existing_db['accounts']
-        valid_tokens = existing_db["validToken"]
+        valid_tokens = existing_db["validTokens"]
 
         return  {
             "cid": collection_intrusion_detection,
