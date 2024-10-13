@@ -51,14 +51,12 @@ class Login(BaseModel):
     password: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
 
 
-class Signup(BaseModel):
+class RegisterSuperAdmin(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
-    userName: Annotated[
+    companyName: Annotated[
         str, StringConstraints(strip_whitespace=False, max_length=100, min_length=2)
     ]
     email: EmailStr
-    password1: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
-    password2: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
     termsConditions: bool
 
     @field_validator("termsConditions", mode="before")
@@ -68,10 +66,22 @@ class Signup(BaseModel):
             raise ValueError("terms and conditions should be acknowledged")
         return v
 
+
+
+class RegisterAdmin(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
+    email: EmailStr
+    password: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
+    confirmPassword: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
+
     @model_validator(mode="after")
     def check_passwords_match(self):
-        pw1 = self.password1
-        pw2 = self.password2
+        pw1 = self.password
+        pw2 = self.confirmPassword
         if pw1 is not None and pw2 is not None and pw1 != pw2:
             raise ValueError("passwords do not match")
         return self
+    
+
+class RegisterUser(RegisterAdmin):
+    ...

@@ -24,7 +24,8 @@ def create_models()-> Dict[str, Any]:
         cameras = existing_db["cameras"]
         entry_exit_logs = existing_db["entryExitLogs"]
         employees = existing_db["employees"]
-        users = existing_db['users']
+        accounts = existing_db['accounts']
+        valid_tokens = existing_db["validTokens"]
 
         return  {
             "cid": collection_intrusion_detection,
@@ -32,7 +33,8 @@ def create_models()-> Dict[str, Any]:
             "cameras": cameras,
             "entry_exit_logs": entry_exit_logs,
             "employees": employees,
-            "users": users
+            "accounts": accounts,
+            "valid_tokens":valid_tokens
         }
     except Exception as e:
         print(f"Error: {e}")
