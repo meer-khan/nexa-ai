@@ -24,7 +24,6 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",  # React development server# Production React app
 ]
-
 # Add CORS middleware to the FastAPI app
 app.add_middleware(
     CORSMiddleware,
