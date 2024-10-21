@@ -46,7 +46,6 @@ async def signup(
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=exc_info.errors()
             )
-        ic(token.get("jti"))
         if not collections.get("valid_tokens").find_one({"access_uuid": token.get("jti")}):
             response.status_code = status.HTTP_403_FORBIDDEN
             return HTTPException(
@@ -67,13 +66,11 @@ async def signup(
                 detail=f"Company profile with given email {email} alread exists."
             )
 
-        # user_data.update({"companyLogo": companyLogo})
-        # Read and store the company logo
         logo_binary = await companyLogo.read()
-        # check_email_exists = collections.get("accounts").find_one({"email": user_data.get("email")})
+
         auto_generate_password = passwords_helper.generate_password(length=8)
         user_data["password"] = passwords_helper.hash(auto_generate_password)
-        # user_data.pop("confirmPassword")
+
         user_data.update(
             {
                 "role":roles.super_admin ,
@@ -85,9 +82,7 @@ async def signup(
             }
         )
         # Insert user data into database
-        id = collections.get("accounts").insert_one(user_data)
-        ic(id.inserted_id)
-        # Token generation for sending email to verify the user email
+        collections.get("accounts").insert_one(user_data)
         # TODO: Log - I
         response.status_code = status.HTTP_201_CREATED
         return {"detail": "Company profile created successfully", "status_code": response.status_code, "email": email, "password": auto_generate_password}
@@ -115,6 +110,7 @@ async def signup_admin(
             "password": password,
             "confirmPassword": confirmPassword,
         }
+
         try:
             user_data = data_schemas.RegisterAdmin(
                 email=email,
@@ -128,6 +124,12 @@ async def signup_admin(
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=exc_info.errors()
             )
+        
+        if not collections.get("valid_tokens").find_one({"access_uuid": token.get("jti")}):
+            response.status_code = status.HTTP_403_FORBIDDEN
+            return HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid Token")
 
         if token.get("role") != roles.super_admin:
             response.status_code = status.HTTP_403_FORBIDDEN
@@ -196,6 +198,13 @@ async def signup_user(
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=exc_info.errors()
             )
+        
+        if not collections.get("valid_tokens").find_one({"access_uuid": token.get("jti")}):
+            response.status_code = status.HTTP_403_FORBIDDEN
+            return HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid Token")
+        
         if token.get("role") not in [roles.super_admin, roles.admin]:
             response.status_code = status.HTTP_403_FORBIDDEN
             return HTTPException(
