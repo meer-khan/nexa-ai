@@ -56,7 +56,6 @@ async def login(
         if master_user == user_credentials.username and passwords_helper.verify(
             user_credentials.password, master_key
         ):
-            ic(master_user)
             user = {"role": "master", "_id": config("MASTER_ID"), "email": master_user}
             results = login_formalities(user=user)
             return results
