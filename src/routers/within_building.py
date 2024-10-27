@@ -1,6 +1,4 @@
-from datetime import datetime
 from pymongo import ASCENDING
-from datetime import datetime
 from fastapi import (
     APIRouter,
     WebSocket,
@@ -87,25 +85,18 @@ def fetch_people_still_in_factory():
     # Return processed logs for people still in the factory
     return process_logs(still_in_factory)
 
-
-
-
 active_connections: List[WebSocket] = []
-
 
 async def connect(websocket: WebSocket):
     await websocket.accept()
     active_connections.append(websocket)
 
-
 async def disconnect(websocket: WebSocket):
     active_connections.remove(websocket)
-
 
 async def broadcast(message: dict):
     for connection in active_connections:
         await connection.send_json(message)
-
 
 @router.websocket("/stats")
 async def websocket_endpoint(websocket: WebSocket):
@@ -116,7 +107,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()  # Keep the connection alive
     except WebSocketDisconnect:
         await disconnect(websocket)
-
 
 # Function to broadcast analysis results to connected clients
 async def broadcast_analysis():
