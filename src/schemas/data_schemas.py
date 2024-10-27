@@ -85,3 +85,11 @@ class RegisterAdmin(BaseModel):
 
 class RegisterUser(RegisterAdmin):
     ...
+
+
+
+
+class ChangePassword(BaseModel):
+    newPassword: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
+    oldPassword: Annotated[str, StringConstraints(strip_whitespace=False, min_length=8)]
+    

@@ -1,4 +1,6 @@
-from fastapi import  Form, HTTPException, APIRouter , UploadFile, File
+from fastapi import  Form, HTTPException, APIRouter , UploadFile, File, Depends, Response, status
+from utils.jwt_helper import get_current_user
+from constants.constants import roles
 from pymongo.collection import Collection
 from db.db_models import create_models
 from typing_extensions import Dict
@@ -13,11 +15,18 @@ os.makedirs(UPLOADS, exist_ok=True)
 
 @router.post("/register")
 async def register_employee(
+    response: Response,
     name: str = Form(...), 
     employeeID: str = Form(...),
-    picture: UploadFile = File(...)
-):
-    # Check if employeeID already exists
+    picture: UploadFile = File(...),
+    token : str =  Depends(get_current_user)
+):  
+    # Validate role
+    if token.get("role") not in [roles.admin, roles.super_admin]: 
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return HTTPException(status_code=response.status_code, detail="You donot have necessary permissions")
+    
+    # Check if employeeID already exists in database
     if collections.get("employees").find_one({"employeeID": employeeID}):
         raise HTTPException(status_code=400, detail="EmployeeID already exists.")
 
@@ -43,14 +52,29 @@ async def register_employee(
 
 # GET API to fetch all registered employees
 @router.get("/all")
-async def get_employees():
+async def get_employees(response:Response, 
+                        token:str = Depends(get_current_user)):
+
+    # Validate role
+    if token.get("role") not in [roles.admin, roles.super_admin]: 
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return HTTPException(status_code=response.status_code, detail="You donot have necessary permissions")
+    
     # Get all employees from MongoDB
     employees = list(collections.get("employees").find({}, {"_id": 0}))  # Exclude MongoDB's internal _id field
     return employees
 
 
 @router.delete("/delete/{employeeID}")
-async def delete_employee(employeeID: str):
+async def delete_employee(employeeID: str, response:Response, 
+                        token:str = Depends(get_current_user)):
+    
+    # Validate role
+    if token.get("role") not in [roles.admin, roles.super_admin]: 
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return HTTPException(status_code=response.status_code, detail="You donot have necessary permissions")
+
+
     # Fetch the employee data to get the profile picture path
     employee = collections.get("employees").find_one({"employeeID": employeeID})
     

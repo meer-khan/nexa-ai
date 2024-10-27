@@ -52,5 +52,3 @@ async def get_activity_data():
         doc["id"] = str(doc.pop("_id"))
 
     return documents
-
-

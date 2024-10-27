@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from typing_extensions import Dict, Tuple
 from fastapi import Depends, HTTPException, status
+from pymongo.collection import Collection
+from db.db_models import create_models
 from decouple import config
 from icecream import ic
 import uuid
@@ -17,6 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 REFRESH_TOKEN_EXPIRE_DAYS = config("REFRESH_TOKEN_EXPIRE_DAYS", cast=int)
 REFRESH_TOKEN_EXPIRE_MINUTES = config("REFRESH_TOKEN_EXPIRE_MINUTES", cast=int)
 ISS = config("ISS")
+collections: Dict[str, Collection] = create_models()
 
 
 def create_access_token(data: dict) -> Tuple:
@@ -31,10 +34,10 @@ def create_access_token(data: dict) -> Tuple:
 def verify_token(token: str, credentials_exception) -> Dict:
     try:
         payload = jwt.decode(token, SECRET_KEY_ACCESS, algorithms=ALGORITHM)
-
         if (
-            payload.get("iss") != ISS
-            or payload.get("sub") is None
+            (payload.get("iss") != ISS
+            or payload.get("sub") is None)
+            or not (collections.get("valid_tokens").find_one(filter={"access_uuid": payload.get("jti")}))
         ):
             raise credentials_exception
         return payload
