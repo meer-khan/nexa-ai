@@ -11,3 +11,48 @@ if some error occurs on database side and get to your linux terminal and type
 after start mongodb server check its status 
 
 `sudo systemctl status mongod`
+ 
+
+
+####################################################
+
+------------------------------------------------------------------------------------------------------
+7lxRhytG
+- User management 
+	- ROLES:
+		- Super 
+			- Create accounts for admins and users - DONE
+				- password for admins and users should not be auto generated - DONE
+			- We will provide them super account - DONE
+			- Change password for himself - DONE
+
+		- Admin
+			- add camera - NOT DONE YET
+			- add new user - TEST REQUIRED 
+			- register employee - TEST REQUIRED
+			- delete employee  - TEST REQUIRED
+			- Which dashboard ?? (drop down)
+		- User
+			- read-only access of dashboard
+	- JWT - DONE
+	- Signup super admin - DONE
+		- Company Name
+		- email 
+		- password auto-generated
+		- LOGO of company 
+	- Signin - DONE
+		- three role based
+	- set-master-password - Master - DONE
+	- logout  - - TEST REQUIRED
+
+
+- Out of all dashboards/features, which one we are giving to a particular company so which dashboard should open there. 
+
+
+- Picture should be in database in some format. 
+	- write API to get all pictures for AI System 
+
+
+- For unknowns we need to store picture as well.
+
+
