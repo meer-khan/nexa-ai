@@ -16,6 +16,7 @@ from src.routers import (
     todays_visits,
     within_building
 )
+from src.routers.unsafe_behaviour import unsafe_behaviour_monitoring
 from src.routers.user_management import login, signup, profile
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,4 +45,5 @@ app.include_router(within_building.router)
 app.include_router(login.router)
 app.include_router(signup.router)
 app.include_router(profile.router)
+app.include_router(unsafe_behaviour_monitoring.router)
 
