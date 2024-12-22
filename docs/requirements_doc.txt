@@ -1,0 +1,89 @@
+#Instructions to run backend
+
+##Navigate to directory "~/Desktop/nexa-ai$" and type command: 
+
+`uvicorn src.app:app --reload`
+
+
+if some error occurs on database side and get to your linux terminal and type 
+`sudo systemctl start mongod`
+
+after start mongodb server check its status 
+
+`sudo systemctl status mongod`
+ 
+
+
+####################################################
+
+------------------------------------------------------------------------------------------------------
+7lxRhytG
+- User management 
+	- ROLES:
+		- Super 
+			- Create accounts for admins and users - DONE
+				- password for admins and users should not be auto generated - DONE
+			- We will provide them super account - DONE
+			- Change password for himself - DONE
+
+		- Admin
+			- add camera - NOT DONE YET
+			- add new user - TEST REQUIRED 
+			- register employee - TEST REQUIRED
+			- delete employee  - TEST REQUIRED
+			- Which dashboard ?? (drop down)
+		- User
+			- read-only access of dashboard
+	- JWT - DONE
+	- Signup super admin - DONE
+		- Company Name
+		- email 
+		- password auto-generated
+		- LOGO of company 
+	- Signin - DONE
+		- three role based
+	- set-master-password - Master - DONE
+	- logout  - - TEST REQUIRED
+
+
+- Out of all dashboards/features, which one we are giving to a particular company so which dashboard should open there. 
+
+
+- Picture should be in database in some format. 
+	- write API to get all pictures for AI System 
+
+
+- For unknowns we need to store picture as well.
+
+
+
+
+
+
+CIP Room (processing something room) 
+Future improvement: 
+1- Database improvements
+2- Person detection managements 
+3- Infrastructural changes
+
+
+NEXAAI - UNSAFE Behavior 
+1- Door will open if Person wears everything like suit helmet gloves 
+2- Tetra Pack
+	Pathways align
+	Usage of phone while walking
+	Running 
+	grabbing railing while going upstairs 
+	running on stairs 
+	fall detection
+	Person Detection 
+
+
+
+Divide them into zones if zone is a camera
+front end
+1- Violation detection in which zone 
+2- How many violations 
+3- Speaker announcement in zone of violation 
+
+
