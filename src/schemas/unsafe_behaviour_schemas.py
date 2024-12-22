@@ -1,7 +1,7 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from typing import List
 from datetime import datetime
-
+from icecream import ic
 
 ALLOWED_VIOLATIONS = [
     "people off pathways",
@@ -13,10 +13,11 @@ ALLOWED_VIOLATIONS = [
 
 class ViolationRequest(BaseModel):
     camera_id: str
-    violations: List[str]
+    violations: str
 
-    @validator("violations", each_item=True)
+    @field_validator('violations', mode='after')
     def validate_violation(cls, v):
+        ic(v)
         if v not in ALLOWED_VIOLATIONS:
-            raise ValueError(f"Violation '{v}' is not allowed.")
+            raise ValueError(f"Violation '{v}' is not allowed. Only following violations are allowed {ALLOWED_VIOLATIONS}")
         return v
