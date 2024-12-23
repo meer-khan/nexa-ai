@@ -10,9 +10,6 @@ from pymongo.collection import Collection
 from typing_extensions import Dict, List
 from db.db_models import create_models
 from schemas.unsafe_behaviour_schemas import ViolationRequest
-import pytz
-import asyncio
-from icecream import ic
 from utils.time_utilities import convert_utc_to_pst
 
 router = APIRouter(tags=["unsafe-behaviour"], prefix="")
@@ -26,8 +23,6 @@ async def record_violation(violation: ViolationRequest):
     violation_data = violation.model_dump()
     date_time = datetime.now(timezone.utc)
     violation_data["createdAt"] = date_time
-    # Save violation to the database
-    ic(violation_data)
     result = collections.get("violations").insert_one(violation_data)
 
     # Broadcast the violation to all connected WebSocket clients
@@ -49,9 +44,7 @@ async def disconnect(websocket: WebSocket):
 
 # Broadcast a message to all active connections
 async def broadcast(message: dict):
-    ic(active_connections)
     for connection in active_connections:
-        ic(message)
         await connection.send_json(message)
 
 # Fetch the last recorded record from the database
@@ -62,7 +55,6 @@ async def get_last_record():
         last_record["timestamp"] = convert_utc_to_pst(utc_time=last_record.get("createdAt")).strftime("%Y-%m-%d %H:%M:%S")
         last_record.pop("createdAt")
         last_record = {"violations": last_record}
-    ic(last_record)
     await broadcast(last_record)
     return last_record
 
