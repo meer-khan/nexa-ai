@@ -4,12 +4,14 @@ from fastapi.responses import JSONResponse
 from pymongo.collection import Collection
 from typing_extensions import Dict
 from db.db_models import create_models
+from icecream import ic
+import pprint
 
-router = APIRouter(tags=["unsafe-behaviour"], prefix="")
+router = APIRouter(tags=["unsafe-behaviour"], prefix="/violations")
 collections: Dict[str, Collection] = create_models()
 
 
-@router.get("/violations/trends")
+@router.get("/trends")
 async def get_violation_trends():
     """
     API to fetch trends of violations for the last 24 hours, 7 days, and 30 days.
@@ -29,18 +31,51 @@ async def get_violation_trends():
         # Initialize result
         trends = {}
 
-        for label, start_time in ranges.items():
+        # for label, start_time in ranges.items():
+        #     pipeline = [
+        #         {"$match": {"createdAt": {"$gte": start_time, "$lte": now}}},
+        #         {"$group": {"_id": "$violations", "count": {"$sum": 1}}},
+        #         {"$sort": {"count": -1}}
+        #     ]
+        #     result = list(collections.get("violations").aggregate(pipeline))
+        #     pprint.pprint(result)
+        #     trends[label] = {
+        #         "total_violations": sum(r["count"] for r in result),
+        #         "breakdown": {r["_id"]: r["count"] for r in result},
+        #     }
+
+        #     pprint.pprint(trends)
+
+
+        result = {}
+        for period, start_time in ranges.items():
+            # Query for violations in the given time range
             pipeline = [
                 {"$match": {"createdAt": {"$gte": start_time, "$lte": now}}},
-                {"$group": {"_id": "$violations", "count": {"$sum": 1}}},
-                {"$sort": {"count": -1}}
+                {"$unwind": "$violations"},  # Break down array into individual violations
+                {"$group": {"_id": "$violations", "count": {"$sum": 1}}},  # Aggregate counts
+                {"$sort": {"count": -1}},
             ]
-            result = list(collections.get("violations").aggregate(pipeline))
-            
-            trends[label] = {
-                "total_violations": sum(r["count"] for r in result),
-                "breakdown": {r["_id"]: r["count"] for r in result},
+            violations = list(collections.get("violations").aggregate(pipeline))
+
+            # Reformat data for consistency
+            breakdown = {}
+            for violation in violations:
+                key = (
+                    ", ".join(violation["_id"])
+                    if isinstance(violation["_id"], list)
+                    else violation["_id"]
+                )
+                breakdown[key] = violation["count"]
+
+            result[period] = {
+                "total_violations": sum(breakdown.values()),
+                "breakdown": breakdown,
             }
+
+
+        return result
+
 
         return JSONResponse(content={"message": "Trends retrieved successfully", "data": trends})
 
@@ -53,7 +88,7 @@ async def get_violation_trends():
 
 
 
-@router.get("/violations/hotspots")
+@router.get("/hotspots")
 async def get_violation_hotspots():
     """
     API to identify areas or camera locations with the most frequent violations.
@@ -113,7 +148,7 @@ async def get_violation_hotspots():
 
 
 
-@router.get("/violations/distribution")
+@router.get("/distribution")
 async def get_violation_distribution():
     """
     API to provide the distribution of behaviors for chart visualization.
@@ -177,7 +212,7 @@ async def get_violation_distribution():
 
 
 
-@router.get("/violations/frequency-by-interval")
+@router.get("/frequency-by-interval")
 async def get_violation_frequency_by_interval():
     """
     API to fetch non-compliance frequency during specific time intervals.
@@ -262,7 +297,7 @@ async def get_violation_frequency_by_interval():
 
 
 
-@router.get("/violations/railing-usage")
+@router.get("/railing-usage")
 async def get_railing_usage_by_location():
     """
     API to fetch railing usage vs. non-usage statistics for each camera location.
