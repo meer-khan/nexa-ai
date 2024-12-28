@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from pymongo.collection import Collection
 from typing_extensions import Dict
 from db.db_models import create_models
+from utils.time_utilities import convert_utc_to_pst
 from icecream import ic
 import pprint
 
@@ -57,6 +58,9 @@ async def get_violation_trends():
                 {"$sort": {"count": -1}},
             ]
             violations = list(collections.get("violations").aggregate(pipeline))
+
+            if not result: 
+                return JSONResponse(content={})
 
             # Reformat data for consistency
             breakdown = {}
@@ -116,7 +120,8 @@ async def get_violation_hotspots():
                     "violation_breakdown": {
                         "$push": {
                             "violation_type": "$violations",
-                            "count": {"$sum": 1}
+                            "count": {"$sum": 1},
+                            "timestamp": "$createdAt"
                         }
                     }
                 }
@@ -126,16 +131,33 @@ async def get_violation_hotspots():
 
         # Execute the aggregation pipeline
         result = list(collections.get("violations").aggregate(pipeline))
+        if not result: 
+            return JSONResponse(content={})
+        # # Format the response
+        # hotspots = [
+        #     {
+        #         "location": entry["_id"],
+        #         "total_violations": entry["total_violations"],
+        #         "violation_breakdown": entry["violation_breakdown"],
+        #     }
+        #     for entry in result
+        # ]
 
-        # Format the response
-        hotspots = [
-            {
+        hotspots = []
+        for entry in result:
+            formatted_breakdown = []
+            for violation in entry["violation_breakdown"]:
+                pst_timestamp = convert_utc_to_pst(violation["timestamp"])
+                formatted_breakdown.append({
+                    "violation_type": violation["violation_type"],
+                    "timestamp": pst_timestamp.strftime("%Y-%m-%d %H:%M:%S")  # Format PST time
+                })
+            
+            hotspots.append({
                 "location": entry["_id"],
                 "total_violations": entry["total_violations"],
-                "violation_breakdown": entry["violation_breakdown"],
-            }
-            for entry in result
-        ]
+                "violation_breakdown": formatted_breakdown
+            })
 
         return JSONResponse(content={"message": "Hotspots retrieved successfully", "data": hotspots})
 
