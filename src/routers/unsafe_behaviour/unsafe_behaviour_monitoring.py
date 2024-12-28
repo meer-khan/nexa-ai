@@ -10,64 +10,35 @@ from pymongo.collection import Collection
 from typing_extensions import Dict, List
 from db.db_models import create_models
 from schemas.unsafe_behaviour_schemas import ViolationRequest
-import pytz
-import asyncio
-from icecream import ic
+from utils.time_utilities import convert_utc_to_pst
 
-router = APIRouter(tags=["unsafe-behaviour"], prefix="/violations")
+router = APIRouter(tags=["unsafe-behaviour"], prefix="")
 collections: Dict[str, Collection] = create_models()
 # Store active WebSocket connections
 active_connections: List[WebSocket] = []
 
-@router.post(path="/unsafe-behaviour")
+@router.post(path="/violations")
 async def record_violation(violation: ViolationRequest):
     # Validate against allowed violation types
     violation_data = violation.model_dump()
     date_time = datetime.now(timezone.utc)
     violation_data["createdAt"] = date_time
-    # Save violation to the database
     result = collections.get("violations").insert_one(violation_data)
 
     # Broadcast the violation to all connected WebSocket clients
     await broadcast({
         "id": str(result.inserted_id),
         "camera_id": violation.camera_id,
-        "timestamp": date_time,
+        "timestamp": convert_utc_to_pst(date_time).strftime("%Y-%m-%d %H:%M:%S"),
         "violations": violation.violations
     })
 
     return {"message": "Violation recorded successfully", "id": str(result.inserted_id)}
 
-# @router.websocket("/realtime")
-# async def websocket_endpoint(websocket: WebSocket):
-#     # Accept and store the WebSocket connection
-#     await websocket.accept()
-#     active_connections.append(websocket)
-
-#     try:
-#         while True:
-#             await websocket.receive_text()  # Keep the connection alive
-#     except WebSocketDisconnect:
-#         active_connections.remove(websocket)
-#         print("Client disconnected")
-
-# # Helper function to broadcast data to connected clients
-# async def broadcast(data: dict):
-#     for connection in active_connections:
-#         await connection.send_json(data)
-
-
-
-
-
-
-
-# Add a connection to the active list
 async def connect(websocket: WebSocket):
     await websocket.accept()
     active_connections.append(websocket)
 
-# Remove a connection from the active list
 async def disconnect(websocket: WebSocket):
     active_connections.remove(websocket)
 
@@ -77,33 +48,25 @@ async def broadcast(message: dict):
         await connection.send_json(message)
 
 # Fetch the last recorded record from the database
-def get_last_record():
+async def get_last_record():
     last_record = None
-    last_record = collections.get("violations").find_one(sort=[("_id", -1)])
+    last_record = collections.get("violations").find_one(sort=[("_id", -1)], projection = {"_id": 0})
     if last_record:
-        last_record.pop("_id")  # Convert ObjectId to string
-    
-    ic
+        last_record["timestamp"] = convert_utc_to_pst(utc_time=last_record.get("createdAt")).strftime("%Y-%m-%d %H:%M:%S")
+        last_record.pop("createdAt")
+        last_record = {"violations": last_record}
+    await broadcast(last_record)
     return last_record
 
 # WebSocket endpoint
-@router.websocket("/violation-updates")
+@router.websocket("/ws/violations/updates")
 async def websocket_endpoint(websocket: WebSocket):
     await connect(websocket)
-    try:
+    
         # Send the last recorded record when a new connection is established
-        last_record = get_last_record()
-        if last_record:
-            await websocket.send_json({"type": "last_record", "data": last_record})
-
+    await get_last_record()
+    try:
         while True:
-            # Keep the WebSocket connection alive
-            await asyncio.sleep(0.5)  # Adjust polling interval as necessary
-
-            # Fetch recent events
-            recent_events = get_recent_events()
-            if recent_events:
-                await broadcast({"type": "recent_events", "data": recent_events})
-
+            await websocket.receive_text()  # Keep the connection alive
     except WebSocketDisconnect:
         await disconnect(websocket)
