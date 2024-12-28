@@ -31,7 +31,7 @@ def insert_camera_data():
     cameras = []
     for i, location in enumerate(LOCATIONS):
         cameras.append({
-            "camera_id": CAMERA_IDS[i],
+            "cameraId": CAMERA_IDS[i],
             "location": location
         })
     cameras_collection.insert_many(cameras)
