@@ -43,7 +43,7 @@ def insert_violation_data():
     for _ in range(1000):  # Generate 1000 random violation records
         camera_id = random.choice(CAMERA_IDS)
         violations.append({
-            "camera_id": camera_id,
+            "cameraId": camera_id,
             "violations": random.sample(VIOLATION_TYPES, k=random.randint(1, len(VIOLATION_TYPES))),
             "createdAt": random_date(START_DATE, datetime.now())
         })
