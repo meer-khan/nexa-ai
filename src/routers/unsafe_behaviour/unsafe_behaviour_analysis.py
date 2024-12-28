@@ -58,8 +58,7 @@ async def get_violation_trends():
                 {"$sort": {"count": -1}},
             ]
             violations = list(collections.get("violations").aggregate(pipeline))
-
-            if not result: 
+            if not violations: 
                 return JSONResponse(content={})
 
             # Reformat data for consistency
@@ -71,7 +70,7 @@ async def get_violation_trends():
                     else violation["_id"]
                 )
                 breakdown[key] = violation["count"]
-
+            
             result[period] = {
                 "total_violations": sum(breakdown.values()),
                 "breakdown": breakdown,
@@ -105,8 +104,8 @@ async def get_violation_hotspots():
             {
                 "$lookup": {
                     "from": "cameras",  # The collection containing camera details
-                    "localField": "camera_id",
-                    "foreignField": "camera_id",
+                    "localField": "cameraId",
+                    "foreignField": "cameraId",
                     "as": "camera_details"
                 }
             },
@@ -332,8 +331,8 @@ async def get_railing_usage_by_location():
             {
                 "$lookup": {
                     "from": "cameras",  # Cameras collection
-                    "localField": "camera_id",  # Field in violations
-                    "foreignField": "camera_id",  # Field in cameras
+                    "localField": "cameraId",  # Field in violations
+                    "foreignField": "cameraId",  # Field in cameras
                     "as": "camera_details"
                 }
             },
