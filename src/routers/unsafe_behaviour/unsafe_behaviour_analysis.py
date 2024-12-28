@@ -244,7 +244,7 @@ async def get_violation_frequency_by_interval():
     try:
         # Define time intervals (adjust as needed)
         time_intervals = [
-            {"label": "Morning Rush Hours", "start": 6, "end": 9},
+            {"label": "Morning", "start": 6, "end": 9},
             {"label": "Midday", "start": 9, "end": 12},
             {"label": "Lunch Break", "start": 12, "end": 14},
             {"label": "Afternoon", "start": 14, "end": 17},
@@ -318,7 +318,6 @@ async def get_violation_frequency_by_interval():
 
 
 
-
 @router.get("/railing-usage")
 async def get_railing_usage_by_location():
     """
@@ -340,11 +339,17 @@ async def get_railing_usage_by_location():
             },
             # Unwind the joined array
             {"$unwind": "$camera_details"},
-            # Project necessary fields
+            # Ensure violations field is always an array
             {
                 "$project": {
                     "location": "$camera_details.location",
-                    "violations": 1
+                    "violations": {
+                        "$cond": {
+                            "if": {"$isArray": "$violations"},
+                            "then": "$violations",
+                            "else": ["$violations"]
+                        }
+                    }
                 }
             },
             # Group by location and categorize railing usage
