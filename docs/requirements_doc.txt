@@ -88,14 +88,14 @@ front end
 
 
 
-frequency-by-interval
+frequency-by-interval Changes By Arslan
 Changes: 
 1- Which violations? 
-2- change of time in pst 
-3- change of day time in numbers/digits
-4- Remove extra data from hotshots
+2- change of time in pst -DONE
+3- change of day time in numbers/digits -Done
+4- Remove extra data from hotshots -DONE
 
-
+NEW APIs
 1- Update Password / user management 
-2- Get all users / admin/ superadmin
-3- Delete user
+2- Get all users / admin/ superadmin -DONE
+3- Delete user -DONE

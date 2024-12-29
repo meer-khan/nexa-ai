@@ -299,6 +299,8 @@ async def get_violation_distribution():
         )
 
 
+
+
 @router.get("/frequency-by-interval")
 async def get_violation_frequency_by_interval():
     """
@@ -308,13 +310,19 @@ async def get_violation_frequency_by_interval():
     """
     try:
         # Define time intervals (adjust as needed)
+        # Morning = 8am - 10am
+        # MidDay  = 10am - 01:pm
+        # Lunch Break = 1pm - 2pm
+        # Afternoon = 2:00pm - 4pm
+        # Evening = 4:00pm - 7:00pm
+        # Night = 7:00pm - 11pm
         time_intervals = [
-            {"label": "Morning", "start": 6, "end": 9},
-            {"label": "Midday", "start": 9, "end": 12},
-            {"label": "Lunch Break", "start": 12, "end": 14},
-            {"label": "Afternoon", "start": 14, "end": 17},
-            {"label": "Evening", "start": 17, "end": 21},
-            {"label": "Night", "start": 21, "end": 6},
+            {"label": "Morning 8:00am - 10:00am", "start": 3, "end": 15},
+            {"label": "Midday 10:00am - 01:00pm", "start": 5, "end": 8},
+            {"label": "Lunch Break 1:00pm to 2:00pm", "start": 8, "end": 9},
+            {"label": "Afternoon 2:00pm to 4:00pm", "start": 9, "end": 11},
+            {"label": "Evening 4:00pm - 7:00pm", "start": 11, "end": 14},
+            {"label": "Night 7:00pm - 11:00pm", "start": 14, "end": 18},
         ]
 
         # Convert intervals into aggregation stages
@@ -330,10 +338,10 @@ async def get_violation_frequency_by_interval():
         }
 
         # Handle night interval separately (spanning two days)
-        interval_cases["Night"] = {
+        interval_cases["Night 11:00pm - 08:00am"] = {
             "$or": [
-                {"$gte": [{"$hour": "$createdAt"}, 21]},
-                {"$lt": [{"$hour": "$createdAt"}, 6]},
+                {"$gte": [{"$hour": "$createdAt"}, 18]},
+                {"$lt": [{"$hour": "$createdAt"}, 3]},
             ]
         }
 
