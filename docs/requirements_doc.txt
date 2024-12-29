@@ -87,3 +87,15 @@ front end
 3- Speaker announcement in zone of violation 
 
 
+
+frequency-by-interval
+Changes: 
+1- Which violations? 
+2- change of time in pst 
+3- change of day time in numbers/digits
+4- Remove extra data from hotshots
+
+
+1- Update Password / user management 
+2- Get all users / admin/ superadmin
+3- Delete user
