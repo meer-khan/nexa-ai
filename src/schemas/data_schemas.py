@@ -24,7 +24,7 @@ class PersonIdentification(BaseModel):
 class AddCamera(BaseModel):
     cameraId: str
     location: str
-    cameraType: Literal["entry", "exit", "assembly_line"]
+    cameraType: Literal["entry", "exit", "assembly_line"] | str
 
 
 class LogEvent(BaseModel):
