@@ -28,7 +28,7 @@ async def record_violation(violation: ViolationRequest):
     camera_info = collections.get("cameras").find_one({"cameraId": violation_data.get("cameraId")}, {"location": 1})
     # Broadcast the violation to all connected WebSocket clients
     await broadcast({
-        "camera_id": violation.cameraId,
+        "cameraId": violation.cameraId,
         "timestamp": convert_utc_to_pst(date_time).strftime("%Y-%m-%d %H:%M:%S"),
         "violations": violation.violations,
         "location": camera_info.get("location")
