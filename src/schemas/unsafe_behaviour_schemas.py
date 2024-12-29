@@ -12,12 +12,14 @@ ALLOWED_VIOLATIONS = [
 
 
 class ViolationRequest(BaseModel):
-    camera_id: str
-    violations: str
+    cameraId: str
+    violations: List[str]
 
-    @field_validator('violations', mode='after')
+    @field_validator("violations", mode="after")
     def validate_violation(cls, v):
-        ic(v)
-        if v not in ALLOWED_VIOLATIONS:
-            raise ValueError(f"Violation '{v}' is not allowed. Only following violations are allowed {ALLOWED_VIOLATIONS}")
-        return v
+        for violation in v:
+            if violation not in ALLOWED_VIOLATIONS:
+                raise ValueError(
+                    f"Violation '{v}' is not allowed. Only following violations are allowed {ALLOWED_VIOLATIONS}"
+                )
+            return v
