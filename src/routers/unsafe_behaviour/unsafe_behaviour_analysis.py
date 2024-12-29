@@ -21,7 +21,7 @@ async def get_violation_trends():
     """
     try:
         now = datetime.now(timezone.utc)
-        
+
         # Define time ranges
         ranges = {
             "last_24_hours": now - timedelta(hours=24),
@@ -47,18 +47,21 @@ async def get_violation_trends():
 
         #     pprint.pprint(trends)
 
-
         result = {}
         for period, start_time in ranges.items():
             # Query for violations in the given time range
             pipeline = [
                 {"$match": {"createdAt": {"$gte": start_time, "$lte": now}}},
-                {"$unwind": "$violations"},  # Break down array into individual violations
-                {"$group": {"_id": "$violations", "count": {"$sum": 1}}},  # Aggregate counts
+                {
+                    "$unwind": "$violations"
+                },  # Break down array into individual violations
+                {
+                    "$group": {"_id": "$violations", "count": {"$sum": 1}}
+                },  # Aggregate counts
                 {"$sort": {"count": -1}},
             ]
             violations = list(collections.get("violations").aggregate(pipeline))
-            if not violations: 
+            if not violations:
                 return JSONResponse(content={})
 
             # Reformat data for consistency
@@ -70,25 +73,20 @@ async def get_violation_trends():
                     else violation["_id"]
                 )
                 breakdown[key] = violation["count"]
-            
+
             result[period] = {
                 "total_violations": sum(breakdown.values()),
                 "breakdown": breakdown,
             }
 
-
         return result
 
-
-        return JSONResponse(content={"message": "Trends retrieved successfully", "data": trends})
+        return JSONResponse(
+            content={"message": "Trends retrieved successfully", "data": trends}
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving trends: {e}")
-    
-
-
-
-
 
 
 @router.get("/hotspots")
@@ -106,12 +104,10 @@ async def get_violation_hotspots():
                     "from": "cameras",  # The collection containing camera details
                     "localField": "cameraId",
                     "foreignField": "cameraId",
-                    "as": "camera_details"
+                    "as": "camera_details",
                 }
             },
-            {
-                "$unwind": "$camera_details"
-            },
+            {"$unwind": "$camera_details"},
             {
                 "$group": {
                     "_id": "$camera_details.location",  # Group by location
@@ -120,9 +116,9 @@ async def get_violation_hotspots():
                         "$push": {
                             "violation_type": "$violations",
                             "count": {"$sum": 1},
-                            "timestamp": "$createdAt"
+                            "timestamp": "$createdAt",
                         }
-                    }
+                    },
                 }
             },
             {"$sort": {"total_violations": -1}},  # Sort by highest violations
@@ -130,7 +126,7 @@ async def get_violation_hotspots():
 
         # Execute the aggregation pipeline
         result = list(collections.get("violations").aggregate(pipeline))
-        if not result: 
+        if not result:
             return JSONResponse(content={})
         # # Format the response
         # hotspots = [
@@ -147,26 +143,29 @@ async def get_violation_hotspots():
             formatted_breakdown = []
             for violation in entry["violation_breakdown"]:
                 pst_timestamp = convert_utc_to_pst(violation["timestamp"])
-                formatted_breakdown.append({
-                    "violation_type": violation["violation_type"],
-                    "timestamp": pst_timestamp.strftime("%Y-%m-%d %H:%M:%S")  # Format PST time
-                })
-            
-            hotspots.append({
-                "location": entry["_id"],
-                "total_violations": entry["total_violations"],
-                "violation_breakdown": formatted_breakdown
-            })
+                formatted_breakdown.append(
+                    {
+                        "violation_type": violation["violation_type"],
+                        "timestamp": pst_timestamp.strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),  # Format PST time
+                    }
+                )
 
-        return JSONResponse(content={"message": "Hotspots retrieved successfully", "data": hotspots})
+            hotspots.append(
+                {
+                    "location": entry["_id"],
+                    "total_violations": entry["total_violations"],
+                    "violation_breakdown": formatted_breakdown,
+                }
+            )
+
+        return JSONResponse(
+            content={"message": "Hotspots retrieved successfully", "data": hotspots}
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving hotspots: {e}")
-
-
-
-
-
 
 
 @router.get("/distribution")
@@ -185,19 +184,14 @@ async def get_violation_distribution():
             {
                 "$group": {
                     "_id": "$violations",  # Group by violation type
-                    "count": {"$sum": 1}  # Count occurrences of each type
+                    "count": {"$sum": 1},  # Count occurrences of each type
                 }
             },
             {
                 "$group": {
                     "_id": None,  # Prepare for percentage calculation
                     "total_count": {"$sum": "$count"},
-                    "details": {
-                        "$push": {
-                            "violation_type": "$_id",
-                            "count": "$count"
-                        }
-                    }
+                    "details": {"$push": {"violation_type": "$_id", "count": "$count"}},
                 }
             },
             {
@@ -211,26 +205,30 @@ async def get_violation_distribution():
                     "percentage": {
                         "$multiply": [
                             {"$divide": ["$details.count", "$total_count"]},
-                            100
+                            100,
                         ]
-                    }
+                    },
                 }
             },
             {
                 "$sort": {"count": -1}  # Sort by count in descending order
-            }
+            },
         ]
 
         # Execute the aggregation pipeline
         result = list(collections.get("violations").aggregate(pipeline))
 
-        return JSONResponse(content={"message": "Violation distribution retrieved successfully", "data": result})
+        return JSONResponse(
+            content={
+                "message": "Violation distribution retrieved successfully",
+                "data": result,
+            }
+        )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving distribution: {e}")
-    
-
-
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving distribution: {e}"
+        )
 
 
 @router.get("/frequency-by-interval")
@@ -248,7 +246,7 @@ async def get_violation_frequency_by_interval():
             {"label": "Lunch Break", "start": 12, "end": 14},
             {"label": "Afternoon", "start": 14, "end": 17},
             {"label": "Evening", "start": 17, "end": 21},
-            {"label": "Night", "start": 21, "end": 6}
+            {"label": "Night", "start": 21, "end": 6},
         ]
 
         # Convert intervals into aggregation stages
@@ -256,17 +254,18 @@ async def get_violation_frequency_by_interval():
             interval["label"]: {
                 "$and": [
                     {"$gte": [{"$hour": "$createdAt"}, interval["start"]]},
-                    {"$lt": [{"$hour": "$createdAt"}, interval["end"]]}
+                    {"$lt": [{"$hour": "$createdAt"}, interval["end"]]},
                 ]
             }
-            for interval in time_intervals if interval["start"] < interval["end"]
+            for interval in time_intervals
+            if interval["start"] < interval["end"]
         }
 
         # Handle night interval separately (spanning two days)
         interval_cases["Night"] = {
             "$or": [
                 {"$gte": [{"$hour": "$createdAt"}, 21]},
-                {"$lt": [{"$hour": "$createdAt"}, 6]}
+                {"$lt": [{"$hour": "$createdAt"}, 6]},
             ]
         }
 
@@ -282,20 +281,15 @@ async def get_violation_frequency_by_interval():
                                 {"case": case, "then": label}
                                 for label, case in interval_cases.items()
                             ],
-                            "default": "Unknown"
+                            "default": "Unknown",
                         }
-                    }
+                    },
                 }
             },
-            {
-                "$group": {
-                    "_id": "$interval",
-                    "count": {"$sum": 1}
-                }
-            },
+            {"$group": {"_id": "$interval", "count": {"$sum": 1}}},
             {
                 "$sort": {"count": -1}  # Sort intervals by frequency
-            }
+            },
         ]
 
         # Execute the pipeline
@@ -307,14 +301,17 @@ async def get_violation_frequency_by_interval():
             for record in result
         ]
 
-        return JSONResponse(content={
-            "message": "Violation frequency by time interval retrieved successfully",
-            "data": formatted_result
-        })
+        return JSONResponse(
+            content={
+                "message": "Violation frequency by time interval retrieved successfully",
+                "data": formatted_result,
+            }
+        )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving frequency data: {e}")
-
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving frequency data: {e}"
+        )
 
 
 @router.get("/railing-usage")
@@ -333,7 +330,7 @@ async def get_railing_usage_by_location():
                     "from": "cameras",  # Cameras collection
                     "localField": "cameraId",  # Field in violations
                     "foreignField": "cameraId",  # Field in cameras
-                    "as": "camera_details"
+                    "as": "camera_details",
                 }
             },
             # Unwind the joined array
@@ -346,9 +343,9 @@ async def get_railing_usage_by_location():
                         "$cond": {
                             "if": {"$isArray": "$violations"},
                             "then": "$violations",
-                            "else": ["$violations"]
+                            "else": ["$violations"],
                         }
-                    }
+                    },
                 }
             },
             # Group by location and categorize railing usage
@@ -358,9 +355,13 @@ async def get_railing_usage_by_location():
                     "railing_usage": {
                         "$sum": {
                             "$cond": [
-                                {"$not": {"$in": ["not holding railings", "$violations"]}},
+                                {
+                                    "$not": {
+                                        "$in": ["not holding railings", "$violations"]
+                                    }
+                                },
                                 1,  # Railing used
-                                0   # Railing not used
+                                0,  # Railing not used
                             ]
                         }
                     },
@@ -369,14 +370,14 @@ async def get_railing_usage_by_location():
                             "$cond": [
                                 {"$in": ["not holding railings", "$violations"]},
                                 1,  # Railing not used
-                                0   # Railing used
+                                0,  # Railing used
                             ]
                         }
-                    }
+                    },
                 }
             },
             # Sort locations by non-railing usage in descending order
-            {"$sort": {"non_railing_usage": -1}}
+            {"$sort": {"non_railing_usage": -1}},
         ]
 
         # Execute the aggregation pipeline
@@ -387,15 +388,118 @@ async def get_railing_usage_by_location():
             {
                 "location": record["_id"],
                 "railing_usage": record["railing_usage"],
-                "non_railing_usage": record["non_railing_usage"]
+                "non_railing_usage": record["non_railing_usage"],
             }
             for record in result
         ]
 
-        return JSONResponse(content={
-            "message": "Railing usage statistics retrieved successfully",
-            "data": formatted_result
-        })
+        return JSONResponse(
+            content={
+                "message": "Railing usage statistics retrieved successfully",
+                "data": formatted_result,
+            }
+        )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving railing usage data: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving railing usage data: {e}"
+        )
+
+
+@router.get("/summary-cards")
+async def get_summary_cards():
+    """
+    API to fetch summary cards:
+    1. Daily violations count (last 24 hours)
+    2. Most common violation today (last 24 hours)
+    3. Zone/camera location with highest risk (last 24 hours)
+    4. Compliance improvement since last week
+    """
+    try:
+        now = datetime.now(timezone.utc)
+        last_24_hours = now - timedelta(hours=24)
+        last_7_days = now - timedelta(days=7)
+        previous_7_days = last_7_days - timedelta(days=7)
+
+        violations_collection = collections.get("violations")
+        cameras_collection = collections.get("cameras")
+
+        daily_violations_count = violations_collection.count_documents(
+            {"createdAt": {"$gte": last_24_hours}}
+        )
+
+        # Most common violation today (last 24 hours)
+        most_common_violation_pipeline = [
+            {"$match": {"createdAt": {"$gte": last_24_hours}}},
+            {"$unwind": "$violations"},
+            {"$group": {"_id": "$violations", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+            {"$limit": 1},
+        ]
+
+        most_common_violation_result = list(
+            violations_collection.aggregate(most_common_violation_pipeline)
+        )
+        most_common_violation = (
+            most_common_violation_result[0]["_id"]
+            if most_common_violation_result
+            else 0
+        )
+
+        # Zone/camera location with highest risk (last 24 hours)
+        highest_risk_zone_pipeline = [
+            {"$match": {"createdAt": {"$gte": last_24_hours}}},
+            {
+                "$lookup": {
+                    "from": "cameras",
+                    "localField": "cameraId",
+                    "foreignField": "cameraId",
+                    "as": "camera_details",
+                }
+            },
+            {"$unwind": "$camera_details"},
+            {
+                "$group": {
+                    "_id": "$camera_details.location",
+                    "violation_count": {"$sum": 1},
+                }
+            },
+            {"$sort": {"violation_count": -1}},
+            {"$limit": 1},
+        ]
+        highest_risk_zone_result = list(
+            violations_collection.aggregate(highest_risk_zone_pipeline)
+        )
+        highest_risk_zone = (
+            highest_risk_zone_result[0]["_id"] if highest_risk_zone_result else 0
+        )
+
+        # Compliance improvement since last week
+        last_7_days_count = violations_collection.count_documents(
+            {"createdAt": {"$gte": last_7_days}}
+        )
+        previous_7_days_count = violations_collection.count_documents(
+            {"createdAt": {"$gte": previous_7_days, "$lt": last_7_days}}
+        )
+        compliance_improvement = (
+            ((previous_7_days_count - last_7_days_count) / previous_7_days_count) * 100
+            if previous_7_days_count > 0
+            else 0
+        )
+
+        # Response formatting
+        summary = {
+            "daily_violations_count": daily_violations_count,
+            "most_common_violation_today": most_common_violation,
+            "highest_risk_zone": highest_risk_zone,
+            "compliance_improvement_percentage": compliance_improvement,
+        }
+
+        return JSONResponse(
+            content={"message": "Summary cards retrieved successfully", "data": summary}
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving summary cards: {e}"
+        )
