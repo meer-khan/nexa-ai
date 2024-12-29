@@ -223,7 +223,7 @@ def get_all_employees(response: Response, token: str = Depends(get_current_user)
     return {"status_code": response.status_code, "details": employees}
 
 
-@router.get("/delete", status_code=status.HTTP_200_OK)
+@router.post("/delete", status_code=status.HTTP_200_OK)
 def delete_account(
     response: Response, email: str = Form(...), token: str = Depends(get_current_user)
 ):
@@ -270,7 +270,7 @@ def delete_account(
 
     else:
         account_details = collections.get("accounts").find_one({"email": email})
-        
+
         if not account_details: 
             response.status_code = status.HTTP_401_UNAUTHORIZED
             return HTTPException(
