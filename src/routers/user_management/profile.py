@@ -246,8 +246,8 @@ def delete_account(
 
     role = token.get("role")
     if role == "admin":
-        # Extract only users
-        # Get account
+
+        # Get account information
         account_details = collections.get("accounts").find_one({"email": email})
         if not account_details: 
             response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -269,6 +269,7 @@ def delete_account(
             }
 
     else:
+        # Get account information
         account_details = collections.get("accounts").find_one({"email": email})
 
         if not account_details: 
