@@ -5,7 +5,10 @@ from fastapi import (
     APIRouter,
     WebSocket,
     WebSocketDisconnect,
+    HTTPException,
+    status
 )
+from fastapi.responses import Response
 from pymongo.collection import Collection
 from typing_extensions import Dict, List
 from db.db_models import create_models
@@ -19,13 +22,20 @@ collections: Dict[str, Collection] = create_models()
 active_connections: List[WebSocket] = []
 
 @router.post(path="/violations")
-async def record_violation(violation: ViolationRequest):
+async def record_violation(response:Response, violation: ViolationRequest):
     # Validate against allowed violation types
     violation_data = violation.model_dump()
+
+
     date_time = datetime.now(timezone.utc)
     violation_data["createdAt"] = date_time
-    result = collections.get("violations").insert_one(violation_data)
     camera_info = collections.get("cameras").find_one({"cameraId": violation_data.get("cameraId")}, {"location": 1})
+    if not camera_info: 
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return HTTPException(status_code=response.status_code, detail="camera Id not found")
+    
+    result = collections.get("violations").insert_one(violation_data)
+    
     # Broadcast the violation to all connected WebSocket clients
     await broadcast({
         "cameraId": violation.cameraId,
@@ -53,13 +63,16 @@ async def get_last_record():
     last_record = None
     last_record = collections.get("violations").find_one(sort=[("_id", -1)], projection = {"_id": 0})
     camera_info = collections.get("cameras").find_one({"cameraId": last_record.get("cameraId")}, {"location": 1})
+    if not camera_info: 
+        return None
     if last_record:
         last_record["timestamp"] = convert_utc_to_pst(utc_time=last_record.get("createdAt")).strftime("%Y-%m-%d %H:%M:%S")
         last_record["location"]= camera_info.get("location")
         last_record.pop("createdAt")
         # last_record = {last_record
-    await broadcast(last_record)
-    return last_record
+        await broadcast(last_record)
+        return last_record
+    return None
 
 # WebSocket endpoint
 @router.websocket("/ws/violations/updates")
