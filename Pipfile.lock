@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7b136f439c394dd695f5e5353c5cfea3a6f23efa1ba4717168eb0810d6eb1689"
+            "sha256": "4786c28dcc14b69a30735612292a1f8a068538bda848837bf08d741c6bd180d4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -565,6 +565,14 @@
             "markers": "python_version >= '3.8'",
             "version": "==2.18.0"
         },
+        "pymodbustcp": {
+            "hashes": [
+                "sha256:893a4d88f6a63af21bd35b2b22061355e74005ea27fefc104e8f9bdb4ce81a04",
+                "sha256:8b0086fa7ed4bd1bf6956d56a0979937008c48091f052310ad8826647fe30180"
+            ],
+            "index": "pypi",
+            "version": "==0.3.0"
+        },
         "pymongo": {
             "hashes": [
                 "sha256:0fc18b3a093f3db008c5fea0e980dbd3b743449eee29b5718bc2dc15ab5088bb",
@@ -788,7 +796,7 @@
                 "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
                 "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_version < '3.13'",
             "version": "==4.12.2"
         },
         "ujson": {
