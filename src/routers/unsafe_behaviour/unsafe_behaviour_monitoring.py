@@ -11,6 +11,7 @@ from typing_extensions import Dict, List
 from db.db_models import create_models
 from schemas.unsafe_behaviour_schemas import ViolationRequest
 from utils.time_utilities import convert_utc_to_pst
+from icecream import ic
 
 router = APIRouter(tags=["unsafe-behaviour"], prefix="")
 collections: Dict[str, Collection] = create_models()
@@ -24,16 +25,16 @@ async def record_violation(violation: ViolationRequest):
     date_time = datetime.now(timezone.utc)
     violation_data["createdAt"] = date_time
     result = collections.get("violations").insert_one(violation_data)
-
+    camera_info = collections.get("cameras").find_one({"cameraId": violation_data.get("cameraId")}, {"location": 1})
     # Broadcast the violation to all connected WebSocket clients
     await broadcast({
-        "id": str(result.inserted_id),
-        "camera_id": violation.camera_id,
+        "camera_id": violation.cameraId,
         "timestamp": convert_utc_to_pst(date_time).strftime("%Y-%m-%d %H:%M:%S"),
-        "violations": violation.violations
+        "violations": violation.violations,
+        "location": camera_info.get("location")
     })
 
-    return {"message": "Violation recorded successfully", "id": str(result.inserted_id)}
+    return {"message": "Violation recorded successfully"}
 
 async def connect(websocket: WebSocket):
     await websocket.accept()
@@ -51,10 +52,12 @@ async def broadcast(message: dict):
 async def get_last_record():
     last_record = None
     last_record = collections.get("violations").find_one(sort=[("_id", -1)], projection = {"_id": 0})
+    camera_info = collections.get("cameras").find_one({"cameraId": last_record.get("cameraId")}, {"location": 1})
     if last_record:
         last_record["timestamp"] = convert_utc_to_pst(utc_time=last_record.get("createdAt")).strftime("%Y-%m-%d %H:%M:%S")
+        last_record["location"]= camera_info.get("location")
         last_record.pop("createdAt")
-        last_record = {"violations": last_record}
+        # last_record = {last_record
     await broadcast(last_record)
     return last_record
 
