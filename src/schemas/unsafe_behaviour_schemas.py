@@ -4,12 +4,25 @@ from datetime import datetime
 from icecream import ic
 
 ALLOWED_VIOLATIONS = [
-    "people off pathways",
-    "using mobile while walking",
-    "not holding railings",
-    "running in walkways",
+    # "people off pathways",
+    # "using mobile while walking",
+    # "not holding railings",
+    # "running in walkways",
+    "Running(Pathway)",
+    "Running(Staris)",
+    "Mobile(Pathway)",
+    "Mobile(Stairs)", 
+    "Pathway(OffLines)",
+    "Railing(Stairs)"
 ]
+[
+# Running(Pathway)
+# Running(Staris)
+# Mobile(Pathway)
+# Mobile(Stairs)
+# Pathway Lines
 
+]
 
 class ViolationRequest(BaseModel):
     cameraId: str

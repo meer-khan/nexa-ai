@@ -177,7 +177,7 @@ def get_all_employees(response: Response, token: str = Depends(get_current_user)
             detail="Token not found or already invalid.",
         )
 
-    if token.get("role") not in [roles.admin, roles.super_admin]:
+    if token.get("role") not in [roles.admin, roles.super_admin, roles.master]:
         response.status_code = status.HTTP_404_NOT_FOUND
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -186,7 +186,7 @@ def get_all_employees(response: Response, token: str = Depends(get_current_user)
 
     role = token.get("role")
     employees = []
-    if role == "admin":
+    if role == roles.admin:
         # Extract only users
         all_employees = collections.get("accounts").find(
             {"role": "user"},
@@ -200,9 +200,9 @@ def get_all_employees(response: Response, token: str = Depends(get_current_user)
             },
         )
 
-    else:
+    elif role == roles.super_admin:
         all_employees = collections.get("accounts").find(
-            {"role": {"$in": ["user", "admin"]}},
+            {"role": {"$in": [roles.user, roles.admin]}},
             {
                 "_id": 0,
                 "companyName": 1,
@@ -212,7 +212,19 @@ def get_all_employees(response: Response, token: str = Depends(get_current_user)
                 "active": 1,
             },
         )
-
+    
+    elif role == roles.master: 
+        all_employees = collections.get("accounts").find(
+            {"role": {"$in": [roles.user, roles.admin, roles.super_admin]}},
+            {
+                "_id": 0,
+                "companyName": 1,
+                "email": 1,
+                "role": 1,
+                "createdAt": 1,
+                "active": 1,
+            },
+        )
     if not all_employees:
         return {"status_code": response.status_code, "details": employees}
 

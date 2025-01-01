@@ -13,12 +13,15 @@ cameras_collection = db["cameras"]
 
 # Define constants
 VIOLATION_TYPES = [
-    "people off pathways",
-    "using mobile while walking",
-    "not holding railings",
-    "running in walkways"
+    "Running(Pathway)",
+    "Running(Staris)",
+    "Mobile(Pathway)",
+    "Mobile(Stairs)", 
+    "Pathway(OffLines)",
+    "Railing(Stairs)"
 ]
 LOCATIONS = ["Main Staircase", "Lobby Area", "Emergency Exit", "Corridor A", "Corridor B"]
+CAMERA_TYPES = ["entry", "exit", "assembly_line"]
 CAMERA_IDS = [f"CAM-{i:03}" for i in range(1, len(LOCATIONS) + 1)]
 START_DATE = datetime.now() - timedelta(days=30)
 
@@ -32,7 +35,8 @@ def insert_camera_data():
     for i, location in enumerate(LOCATIONS):
         cameras.append({
             "cameraId": CAMERA_IDS[i],
-            "location": location
+            "location": location,
+            "cameraType": random.sample(CAMERA_TYPES, k=1 )[0],
         })
     cameras_collection.insert_many(cameras)
     print(f"{len(cameras)} cameras inserted.")
