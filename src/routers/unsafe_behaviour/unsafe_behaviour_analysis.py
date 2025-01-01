@@ -436,7 +436,7 @@ async def get_railing_usage_by_location():
                             "$cond": [
                                 {
                                     "$not": {
-                                        "$in": ["not holding railings", "$violations"]
+                                        "$in": ["Railing(Stairs)", "$violations"]
                                     }
                                 },
                                 1,  # Railing used
@@ -447,7 +447,7 @@ async def get_railing_usage_by_location():
                     "non_railing_usage": {
                         "$sum": {
                             "$cond": [
-                                {"$in": ["not holding railings", "$violations"]},
+                                {"$in": ["Railing(Stairs)", "$violations"]},
                                 1,  # Railing not used
                                 0,  # Railing used
                             ]
