@@ -65,6 +65,7 @@ Future improvement:
 1- Database improvements
 2- Person detection managements 
 3- Infrastructural changes
+4- Camera addition improvement
 
 
 NEXAAI - UNSAFE Behavior 
@@ -99,3 +100,30 @@ NEW APIs
 1- Update Password / user management 
 2- Get all users / admin/ superadmin -DONE
 3- Delete user -DONE
+
+
+
+
+
+CHANGES by Sir Shahrukh - 30th December 2024
+- Violations per hour for last 24 hours
+- Camera should have master access
+- Master can check super admins -DONE
+- Show cameras to admin and super admins
+- Change names of violations -Done
+	Running(Pathway) 
+	Running(Staris)
+	Mobile(Pathway)
+	Mobile(Stairs)
+	Pathway Lines
+
+
+
+
+# CODE REFACTORING
+1- Change the roles from hard coded to get from constants e.g. instead of "admin" use roles.admin
+2- Apply protection to all APIs
+3- Rearrange the APIs in different files 
+4- Attach Tags with each file to make it more understandable
+
+
