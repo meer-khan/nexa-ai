@@ -89,15 +89,13 @@ async def get_violation_trends():
         raise HTTPException(status_code=500, detail=f"Error retrieving trends: {e}")
 
 
-
-
 @router.get("/hotspots")
 async def get_violation_hotspots():
     """
-    API to identify areas or camera locations with the most frequent violations, 
+    API to identify areas or camera locations with the most frequent violations,
     including a breakdown by violation type.
 
-    :return: JSON response with the list of locations, total violations, 
+    :return: JSON response with the list of locations, total violations,
              and violation type breakdowns.
     """
     try:
@@ -119,7 +117,7 @@ async def get_violation_hotspots():
                 "$group": {
                     "_id": {
                         "location": "$camera_details.location",
-                        "violation_type": "$violations"
+                        "violation_type": "$violations",
                     },
                     "count": {"$sum": 1},
                 }
@@ -129,11 +127,8 @@ async def get_violation_hotspots():
                     "_id": "$_id.location",
                     "total_violations": {"$sum": "$count"},
                     "violation_breakdown": {
-                        "$push": {
-                            "type": "$_id.violation_type",
-                            "count": "$count"
-                        }
-                    }
+                        "$push": {"type": "$_id.violation_type", "count": "$count"}
+                    },
                 }
             },
             {"$sort": {"total_violations": -1}},  # Sort by highest violations
@@ -149,7 +144,7 @@ async def get_violation_hotspots():
             {
                 "location": entry["_id"],
                 "total_violations": entry["total_violations"],
-                "violation_breakdown": entry["violation_breakdown"]
+                "violation_breakdown": entry["violation_breakdown"],
             }
             for entry in result
         ]
@@ -299,8 +294,6 @@ async def get_violation_distribution():
         )
 
 
-
-
 @router.get("/frequency-by-interval")
 async def get_violation_frequency_by_interval():
     """
@@ -434,11 +427,7 @@ async def get_railing_usage_by_location():
                     "railing_usage": {
                         "$sum": {
                             "$cond": [
-                                {
-                                    "$not": {
-                                        "$in": ["Railing(Stairs)", "$violations"]
-                                    }
-                                },
+                                {"$not": {"$in": ["Railing(Stairs)", "$violations"]}},
                                 1,  # Railing used
                                 0,  # Railing not used
                             ]
@@ -585,3 +574,208 @@ async def get_summary_cards():
         raise HTTPException(
             status_code=500, detail=f"Error retrieving summary cards: {e}"
         )
+    
+
+@router.get("/violations-summary")
+async def get_violations_summary():
+    """
+    API to fetch total violations in the last 24 hours and count per hour in Pakistan Standard Time.
+    """
+    try:
+        # Define the time range (last 24 hours in UTC)
+        now_utc = datetime.now(timezone.utc)
+        past_24_hours = now_utc - timedelta(hours=24)
+
+        # MongoDB aggregation pipeline
+        pipeline = [
+            # Match violations created in the last 24 hours
+            {
+                "$match": {
+                    "createdAt": {
+                        "$gte": past_24_hours,
+                        "$lte": now_utc,
+                    }
+                }
+            },
+            # Unwind the violations array
+            {
+                "$unwind": "$violations"
+            },
+            # Project fields and extract hour in Pakistan Standard Time
+            {
+                "$addFields": {
+                    "createdAtPST": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%dT%H:00:00",
+                            "date": {
+                                "$dateAdd": {
+                                    "startDate": "$createdAt",
+                                    "unit": "hour",
+                                    "amount": 5  # Add 5 hours for PST
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            # Group by hour and violation type
+            {
+                "$group": {
+                    "_id": {
+                        "hour": "$createdAtPST",
+                        "violation_type": "$violations"
+                    },
+                    "count": {"$sum": 1}
+                }
+            },
+            # Sort by hour
+            {
+                "$sort": {"_id.hour": 1}
+            }
+        ]
+
+        # Execute the pipeline
+        raw_results = list(collections.get("violations").aggregate(pipeline))
+
+        if not raw_results:
+            return JSONResponse(content={"message": "No data found", "data": {}})
+
+        # Format the results
+        violations_per_hour = {}
+        total_violation_in_24_hours = 0
+
+        for record in raw_results:
+            # Extract hour and violation type
+            pst_hour = record["_id"]["hour"]
+            violation_type = record["_id"]["violation_type"]
+            count = record["count"]
+
+            if pst_hour not in violations_per_hour:
+                violations_per_hour[pst_hour] = {
+                    "hour": pst_hour,
+                    "total_violation_this_hour": 0,
+                    "violations": []
+                }
+
+            violations_per_hour[pst_hour]["total_violation_this_hour"] += count
+            violations_per_hour[pst_hour]["violations"].append({
+                "violation_type": violation_type,
+                "count": count
+            })
+
+            total_violation_in_24_hours += count
+
+        # Convert to a list for the response
+        violations_summary = {
+            "total_violation_in_24_hours": total_violation_in_24_hours,
+            "violations_per_hour": list(violations_per_hour.values())
+        }
+
+        return JSONResponse(
+            content={
+                "message": "Violation summary retrieved successfully",
+                "data": violations_summary,
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving violations summary: {e}"
+        )
+
+
+
+@router.get("/violations-daily")
+async def get_daily_violation_counts():
+    """
+    API to fetch the total number of each violation per day for the last 30 days.
+
+    :return: JSON response with daily counts of each violation type.
+    """
+    try:
+        # Calculate the date range for the last 30 days
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=30)
+
+        # MongoDB aggregation pipeline
+        pipeline = [
+            {
+                "$match": {
+                    "createdAt": {
+                        "$gte": start_date,
+                        "$lte": end_date,
+                    }
+                }
+            },
+            {
+                "$unwind": "$violations"  # Unwind the violations array
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}},
+                        "violation_type": "$violations",
+                    },
+                    "count": {"$sum": 1},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id.date",
+                    "violations": {
+                        "$push": {
+                            "violation_type": "$_id.violation_type",
+                            "count": "$count",
+                        }
+                    }
+                }
+            },
+            {
+                "$sort": {"_id": 1}  # Sort by date
+            }
+        ]
+
+        # Execute the pipeline
+        result = list(collections.get("violations").aggregate(pipeline))
+        if not result:
+            return JSONResponse(content={"message": "No data found", "data": {}})
+        # Convert the date to PST
+        data = []
+        for entry in result:
+            pst_date = convert_utc_to_pst(datetime.strptime(entry["_id"], "%Y-%m-%d"))
+            formatted_date = pst_date.strftime("%Y-%m-%d")
+            data.append({
+                "date": formatted_date,
+                "violations": entry["violations"]
+            })
+
+        return JSONResponse(
+            content={
+                "message": "Daily violations retrieved successfully",
+                "data": data
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving daily violation counts: {e}"
+        )
+
+
+
+d = {
+    "data": {
+        "total_violation_in_24_hours": 12,
+        "violations_per_hour": [
+            {
+                "hour": "10-AM 20-12-24",
+                "total_violation_this_hour": 5,
+                "violations": [
+                    {"violation_type": "Running(Staris)", "count": 3},
+                    {"violation_type": "Mobile(Pathway)", "count": 2},
+                ],
+            }
+        ],
+    }
+}
