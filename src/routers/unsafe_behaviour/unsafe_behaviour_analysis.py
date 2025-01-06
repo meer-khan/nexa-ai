@@ -575,7 +575,7 @@ async def get_summary_cards():
             status_code=500, detail=f"Error retrieving summary cards: {e}"
         )
     
-    
+
 @router.get("/violations-summary")
 async def get_violations_summary():
     """
@@ -682,6 +682,87 @@ async def get_violations_summary():
         raise HTTPException(
             status_code=500, detail=f"Error retrieving violations summary: {e}"
         )
+
+
+
+@router.get("/violations-daily")
+async def get_daily_violation_counts():
+    """
+    API to fetch the total number of each violation per day for the last 30 days.
+
+    :return: JSON response with daily counts of each violation type.
+    """
+    try:
+        # Calculate the date range for the last 30 days
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=30)
+
+        # MongoDB aggregation pipeline
+        pipeline = [
+            {
+                "$match": {
+                    "createdAt": {
+                        "$gte": start_date,
+                        "$lte": end_date,
+                    }
+                }
+            },
+            {
+                "$unwind": "$violations"  # Unwind the violations array
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}},
+                        "violation_type": "$violations",
+                    },
+                    "count": {"$sum": 1},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id.date",
+                    "violations": {
+                        "$push": {
+                            "violation_type": "$_id.violation_type",
+                            "count": "$count",
+                        }
+                    }
+                }
+            },
+            {
+                "$sort": {"_id": 1}  # Sort by date
+            }
+        ]
+
+        # Execute the pipeline
+        result = list(collections.get("violations").aggregate(pipeline))
+        if not result:
+            return JSONResponse(content={"message": "No data found", "data": {}})
+        # Convert the date to PST
+        data = []
+        for entry in result:
+            pst_date = convert_utc_to_pst(datetime.strptime(entry["_id"], "%Y-%m-%d"))
+            formatted_date = pst_date.strftime("%Y-%m-%d")
+            data.append({
+                "date": formatted_date,
+                "violations": entry["violations"]
+            })
+
+        return JSONResponse(
+            content={
+                "message": "Daily violations retrieved successfully",
+                "data": data
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving daily violation counts: {e}"
+        )
+
+
 
 d = {
     "data": {
