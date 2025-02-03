@@ -127,3 +127,45 @@ CHANGES by Sir Shahrukh - 30th December 2024
 4- Attach Tags with each file to make it more understandable
 
 
+
+
+TetraPack - 01/feb/2025 - sir Shahrukh and Kashif
+
+1. *Integration of HR Data*:  - DONE
+   - The system will allow users to upload an .xlsx file containing employee data.
+   - The uploaded data will be stored in the database, and employees will be added to the system.
+   - xlsx will have following information
+		1- First Name 
+		2- Last Name 
+		3- designation
+		4- Employee id 
+		5- CNIC
+
+2. *Employee Selection and Auto-Fill*:
+   - Users will be able to select an employee from the list, and all relevant data (e.g., CNIC, phone, designation) will auto-fill for further processing.
+
+3. *Category Options for Adding User*: - DONE
+     1. Employee
+     2. Contractor
+     3. Visitor
+
+4. *Audit Log Reports*: - DONE
+   - Users can view and download audit log reports for a specified date range, covering up to 2–3 years of historical data.
+
+5. *Employee Table with Search Functionality*:
+   - A search feature will be implemented in the Employee table, allowing users to search by:
+     - CNIC
+     - Name
+     - Phone Number
+
+6. *Visitor Management Module for Gatekeepers*:
+   - A dedicated module will enable gatekeepers to:
+     - Search for visitors in the system.
+     - Add new visitor details if they do not already exist.
+     - View and manage visitor data.
+
+7. *Database Update Trigger*:
+   - A manual trigger option will be provided to initiate an immediate database update whenever a new entry is added.
+
+8. *Device Compatibility*:
+   - The application will be fully optimized for use on tablets and mobile devices, ensuring seamless accessibility.
