@@ -64,7 +64,7 @@ async def upload_file(
     employees_added_count = 0
     for emp in employees:
         emp_id = emp.get("employeeID")
-        if not collections.get("employees").find_one({"employeeID": emp_id}):
+        if not collections.get("employees").find_one({"employeeID": str(emp_id)}):
             emp["employeeID"] = str(emp_id)
             collections.get("employees").insert_one(emp)
             employees_added_count += 1
