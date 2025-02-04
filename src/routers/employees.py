@@ -212,6 +212,60 @@ async def register_employee(
     return {"details": f"Employee Added Successfully. ID: {employeeID}"}
 
 
+@router.put("/{employeeID}")
+async def update_employee(
+    employeeID: str,
+    response: Response,
+    name: str = Form(None),
+    employeeCategory: str = Form(None),  # Optional update
+    picture: UploadFile = File(None),  # Optional picture update
+    token: dict = Depends(get_current_user),
+):
+    # Validate role
+    if token.get("role") not in [roles.admin, roles.super_admin]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the necessary permissions",
+        )
+
+    # Check if employee exists
+    employee = collections.get("employees").find_one({"employeeID": employeeID})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found.")
+
+    update_data = {}
+
+    # Update name
+    if name:
+        update_data["name"] = name
+
+    # Update employeeCategory
+    if employeeCategory:
+        update_data["employeeCategory"] = employeeCategory
+
+    # Update profile picture
+    if picture:
+        file_extension = picture.filename.split(".")[-1]
+        file_location = os.path.join(UPLOADS, f"{name or employee['name']}_{employeeID}.{file_extension}")
+        file_location = pathlib.Path(file_location).as_posix()
+
+        # Save the file
+        with open(file_location, "wb") as f:
+            f.write(await picture.read())
+
+        update_data["profile_picture"] = file_location  # Store new file path in DB
+
+    # Update the employee record in MongoDB
+    if update_data:
+        collections.get("employees").update_one(
+            {"employeeID": employeeID}, {"$set": update_data}
+        )
+        return {"details": f"Employee {employeeID} updated successfully"}
+    
+    return {"details": "No updates were made."}
+
+
+
 # GET API to fetch all registered employees
 @router.get("/all")
 async def get_employees(response: Response, token: str = Depends(get_current_user)):
