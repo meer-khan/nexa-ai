@@ -89,8 +89,8 @@ def validate_and_parse_date(date_str: str) -> datetime:
 @router.get("/logs/{start_date}/{end_date}")
 async def get_entry_exit_logs(
     response: Response,
-    start_date: str = Form(...),
-    end_date: str = Form(...),
+    start_date: str ,
+    end_date: str ,
     token: str = Depends(get_current_user),
 ):
     try:
