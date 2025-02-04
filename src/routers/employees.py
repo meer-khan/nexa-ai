@@ -85,8 +85,8 @@ def validate_and_parse_date(date_str: str) -> datetime:
             status_code=400, detail="Invalid date format. Use YYYY-MM-DD."
         )
 
-
-@router.get("/logs/{start_date}/{end_date}")
+# TODO: Refine query params , add variable name as well in query param 
+@router.get("/logs/")
 async def get_entry_exit_logs(
     response: Response,
     start_date: str ,
