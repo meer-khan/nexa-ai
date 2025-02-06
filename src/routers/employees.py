@@ -320,11 +320,9 @@ async def get_employees(response: Response, token: str = Depends(get_current_use
         )
 
     # Get all employees from MongoDB
-    accounts_list = list(
+    employees = list(
         collections.get("employees").find({}, {"_id": 0})
     )  # Exclude MongoDB's internal _id field
-
-    employees = list(collections.get(""))
     return employees
 
 
