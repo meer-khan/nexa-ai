@@ -28,51 +28,73 @@ UPLOADS = r"D:/Uploads"
 os.makedirs(UPLOADS, exist_ok=True)
 
 
-# API to upload Excel file
+
 @router.post("/upload-excel/")
 async def upload_file(
     response: Response,
     file: UploadFile = File(...),
-    token: str = Depends(get_current_user),
+    token: dict = Depends(get_current_user),
 ):
     # Validate role
-    if token.get("role") not in [roles.admin, roles.super_admin]:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return HTTPException(
-            status_code=response.status_code,
-            detail="You donot have necessary permissions",
-        )
-
-    if not file.filename.endswith(".xlsx"):
+    if token.get("role") not in [roles["admin"], roles["super_admin"]]:
+        response.status_code = status.HTTP_403_FORBIDDEN
         raise HTTPException(
-            status_code=400, detail="Invalid file format. Please upload an .xlsx file."
+            status_code=403,
+            detail="You do not have necessary permissions",
         )
 
-    # Read the Excel file into a DataFrame
-    contents = await file.read()
-    df = pd.read_excel(io.BytesIO(contents))
+    # Check file extension
+    if not file.filename.endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload an .xlsx file.")
 
-    # Check if required columns are present
-    required_columns = {"name", "designation", "employeeID", "cnic"}
-    if not required_columns.issubset(df.columns):
+    # Read Excel file
+    contents = await file.read()
+    df = pd.read_excel(io.BytesIO(contents), dtype=str)  # Ensure all columns are string
+
+    # Expected columns in Excel file
+    expected_columns = {
+        "Emp.ID": "employeeID",
+        "Name": "name",
+        "Employee Class": "employeeClass",
+        "CNIC": "cnic",
+        "Contact Number": "contactNumber",
+        "Company": "company",
+        "Category": "category",
+        "Department": "department",
+        "Sub Machine": "subMachine",
+    }
+
+    # Validate columns
+    if not set(expected_columns.keys()).issubset(df.columns):
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file format. Missing required columns. columns should be {required_columns}",
+            detail=f"Invalid file format. Missing required columns: {set(expected_columns.keys()) - set(df.columns)}",
         )
 
-    employees = df.to_dict(orient="records")
-    employees_added_count = 0
-    for emp in employees:
-        emp_id = emp.get("employeeID")
-        if not collections.get("employees").find_one({"employeeID": str(emp_id)}):
-            emp["employeeID"] = str(emp_id)
-            collections.get("employees").insert_one(emp)
-            employees_added_count += 1
+    # Rename columns to camelCase
+    df.rename(columns=expected_columns, inplace=True)
 
-    # Iterate over the rows and store in DB
+    # Convert all data to string
+    df = df.astype(str)
+
+    # Convert DataFrame to dictionary records
+    employees = df.to_dict(orient="records")
+
+    # Fetch existing employee IDs
+    existing_ids = set(
+        doc["employeeID"] for doc in collections.get("employees").find({}, {"_id": 0, "employeeID": 1})
+    )
+
+    # Filter new employees (skip existing ones)
+    new_employees = [emp for emp in employees if emp["employeeID"] not in existing_ids]
+
+    # Insert only new employees
+    if new_employees:
+        collections.get("employees").insert_many(new_employees)
+
     response.status_code = status.HTTP_201_CREATED
     return {
-        "message": "File processed and employees added successfully!. Total ",
+        "message": f"File processed successfully. {len(new_employees)} new employees added.",
         "status_code": response.status_code,
     }
 
@@ -153,14 +175,6 @@ async def get_entry_exit_logs(
                 .replace(tzinfo=datetime.timezone.utc)
                 .isoformat()
             )
-        # for log in logs:
-        #     created_at = 
-        #     log["createdAt"] = (
-        #         datetime.datetime.strptime(str(log["createdAt"]), "%Y-%m-%dT%H:%M:%S.%fZ")
-        #         .replace(datetime.timezone.utc)
-        #         .astimezone(datetime.timezone.utc)
-        #         .isoformat()
-        #     )
 
         return logs
 
@@ -173,7 +187,13 @@ async def register_employee(
     response: Response,
     name: str = Form(...),
     employeeID: str = Form(...),
-    employeeCategory: str = Form(...),  # * Add employee Categories FUTURE
+    cnic: str = Form(None),  
+    contactNumber: str = Form(None),  
+    company: str = Form(None),  
+    category: str = Form(None),  
+    department: str = Form(None), 
+    submachine: str = Form(None), 
+    employeeClass: str = Form(None), 
     picture: UploadFile = File(...),
     token: str = Depends(get_current_user),
 ):
@@ -203,7 +223,13 @@ async def register_employee(
     new_employee = {
         "name": name,
         "employeeID": employeeID,
-        "employeeCategory": employeeCategory,
+        "cnic": cnic,
+        "contactNumber": contactNumber, 
+        "company": company,
+        "category": category,
+        "department": department,
+        "submachine":submachine, 
+        "employeeClass":employeeClass,
         "profile_picture": file_location,  # Store the file path in the database
     }
 
@@ -211,13 +237,18 @@ async def register_employee(
 
     return {"details": f"Employee Added Successfully. ID: {employeeID}"}
 
-
 @router.put("/{employeeID}")
 async def update_employee(
     employeeID: str,
     response: Response,
     name: str = Form(None),
-    employeeCategory: str = Form(None),  # Optional update
+    cnic: str = Form(None),  
+    contactNumber: str = Form(None),  
+    company: str = Form(None),  
+    category: str = Form(None),  
+    department: str = Form(None), 
+    submachine: str = Form(None), 
+    employeeClass: str = Form(None), 
     picture: UploadFile = File(None),  # Optional picture update
     token: dict = Depends(get_current_user),
 ):
@@ -235,33 +266,44 @@ async def update_employee(
 
     update_data = {}
 
-    # Update name
+    # Add fields to update if provided
     if name:
         update_data["name"] = name
+    if cnic:
+        update_data["cnic"] = cnic
+    if contactNumber:
+        update_data["contactNumber"] = contactNumber
+    if company:
+        update_data["company"] = company
+    if category:
+        update_data["category"] = category
+    if department:
+        update_data["department"] = department
+    if submachine:
+        update_data["submachine"] = submachine
+    if employeeClass:
+        update_data["employeeClass"] = employeeClass
 
-    # Update employeeCategory
-    if employeeCategory:
-        update_data["employeeCategory"] = employeeCategory
-
-    # Update profile picture
+    # Handle profile picture update
     if picture:
         file_extension = picture.filename.split(".")[-1]
         file_location = os.path.join(UPLOADS, f"{name or employee['name']}_{employeeID}.{file_extension}")
         file_location = pathlib.Path(file_location).as_posix()
 
-        # Save the file
+        # Save the new picture
         with open(file_location, "wb") as f:
             f.write(await picture.read())
 
-        update_data["profile_picture"] = file_location  # Store new file path in DB
+        # Add the file path to update_data
+        update_data["profile_picture"] = file_location
 
-    # Update the employee record in MongoDB
+    # Update employee data in the database
     if update_data:
         collections.get("employees").update_one(
             {"employeeID": employeeID}, {"$set": update_data}
         )
-        return {"details": f"Employee {employeeID} updated successfully"}
-    
+        return {"details": f"Employee {employeeID} updated successfully."}
+
     return {"details": "No updates were made."}
 
 
@@ -278,9 +320,11 @@ async def get_employees(response: Response, token: str = Depends(get_current_use
         )
 
     # Get all employees from MongoDB
-    employees = list(
+    accounts_list = list(
         collections.get("employees").find({}, {"_id": 0})
     )  # Exclude MongoDB's internal _id field
+
+    employees = list(collections.get(""))
     return employees
 
 
