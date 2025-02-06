@@ -73,9 +73,16 @@ def fetch_people_still_in_factory():
         for log in logs.values():
             pst_time = convert_utc_to_pst(log["createdAt"])
             camera_location = get_camera_location(log["cameraId"])
+
+            employeeID = log.get("employeeID", "Unknown")
+            employee_information = collections.get("employees").find_one({"employeeID": employeeID}, {"_id": 0})
             processed_logs.append({
                 "name": log.get("name", "Unknown"),
                 "employeeID": log.get("employeeID", "Unknown"),
+                "company": employee_information.get("company", "Unknown"),
+                "category": employee_information.get("category", "Unknown"),
+                "department": employee_information.get("department", "Unknown"),
+                "subMachine": employee_information.get("subMachine", "Unknown"),
                 "time_in_pst": pst_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "cameraID": log.get("cameraId", "Unknown"),
                 "camera_location": camera_location,
