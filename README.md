@@ -5,7 +5,11 @@
 ##Navigate to directory "~/Desktop/nexa-ai$" and type command:
 
 `pipenv shell` one time if already not istalled `pipenv install`
+
+then
+
 `cd src`
+
 `uvicorn app:app --reload`
 
 if some error occurs on database side and get to your linux terminal and type
