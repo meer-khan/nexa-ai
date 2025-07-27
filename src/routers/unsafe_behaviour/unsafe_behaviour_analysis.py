@@ -61,8 +61,8 @@ async def get_violation_trends():
                 {"$sort": {"count": -1}},
             ]
             violations = list(collections.get("violations").aggregate(pipeline))
-            if not violations:
-                return JSONResponse(content={})
+            # if not violations:
+            #     return JSONResponse(content={}) # by this if 24 hours 0 then its break the loop, not check the 7 and 30 days
 
             # Reformat data for consistency
             breakdown = {}
