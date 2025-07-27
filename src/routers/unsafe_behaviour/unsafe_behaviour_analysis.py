@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Query
 from datetime import datetime, timedelta, timezone
 from fastapi.responses import JSONResponse
 from pymongo.collection import Collection
@@ -297,48 +297,39 @@ async def get_violation_distribution():
 @router.get("/frequency-by-interval")
 async def get_violation_frequency_by_interval():
     """
-    API to fetch non-compliance frequency during specific time intervals.
-
-    :return: JSON response with time intervals and their corresponding violation counts.
+    API to fetch non-compliance frequency during specific time intervals in local timezone (+5 UTC).
     """
     try:
-        # Define time intervals (adjust as needed)
-        # Morning = 8am - 10am
-        # MidDay  = 10am - 01:pm
-        # Lunch Break = 1pm - 2pm
-        # Afternoon = 2:00pm - 4pm
-        # Evening = 4:00pm - 7:00pm
-        # Night = 7:00pm - 11pm
-        time_intervals = [
-            {"label": "Morning 8:00am - 10:00am", "start": 3, "end": 15},
-            {"label": "Midday 10:00am - 01:00pm", "start": 5, "end": 8},
-            {"label": "Lunch Break 1:00pm to 2:00pm", "start": 8, "end": 9},
-            {"label": "Afternoon 2:00pm to 4:00pm", "start": 9, "end": 11},
-            {"label": "Evening 4:00pm - 7:00pm", "start": 11, "end": 14},
-            {"label": "Night 7:00pm - 11:00pm", "start": 14, "end": 18},
-        ]
-
-        # Convert intervals into aggregation stages
-        interval_cases = {
-            interval["label"]: {
-                "$and": [
-                    {"$gte": [{"$hour": "$createdAt"}, interval["start"]]},
-                    {"$lt": [{"$hour": "$createdAt"}, interval["end"]]},
-                ]
+        # Shift to local timezone (+5)
+        local_hour_expr = {
+            "$hour": {
+                "$add": ["$createdAt", 5 * 60 * 60000]  # add 5 hours in ms
             }
-            for interval in time_intervals
-            if interval["start"] < interval["end"]
         }
 
-        # Handle night interval separately (spanning two days)
-        interval_cases["Night 11:00pm - 08:00am"] = {
-            "$or": [
-                {"$gte": [{"$hour": "$createdAt"}, 18]},
-                {"$lt": [{"$hour": "$createdAt"}, 3]},
-            ]
+        # Define local interval cases
+        interval_cases = {
+            "Morning 7:00am - 3:00pm": {
+                "$and": [
+                    {"$gte": [local_hour_expr, 7]},
+                    {"$lt": [local_hour_expr, 15]},
+                ]
+            },
+            "Evening 3:00pm - 11:00pm": {
+                "$and": [
+                    {"$gte": [local_hour_expr, 15]},
+                    {"$lt": [local_hour_expr, 23]},
+                ]
+            },
+            "Night 11:00pm - 7:00am": {
+                "$or": [
+                    {"$gte": [local_hour_expr, 23]},
+                    {"$lt": [local_hour_expr, 7]},
+                ]
+            },
         }
 
-        # MongoDB aggregation pipeline
+        # Aggregation pipeline
         pipeline = [
             {
                 "$project": {
@@ -347,8 +338,8 @@ async def get_violation_frequency_by_interval():
                     "interval": {
                         "$switch": {
                             "branches": [
-                                {"case": case, "then": label}
-                                for label, case in interval_cases.items()
+                                {"case": condition, "then": label}
+                                for label, condition in interval_cases.items()
                             ],
                             "default": "Unknown",
                         }
@@ -356,21 +347,16 @@ async def get_violation_frequency_by_interval():
                 }
             },
             {"$group": {"_id": "$interval", "count": {"$sum": 1}}},
-            {
-                "$sort": {"count": -1}  # Sort intervals by frequency
-            },
+            {"$sort": {"count": -1}},
         ]
 
-        # Execute the pipeline
         result = list(collections.get("violations").aggregate(pipeline))
 
-        if not result:
-            return JSONResponse(content={"message": "No data found", "data": []})
-
-        # Format the response
+        # Optional: filter unknown
         formatted_result = [
             {"time_interval": record["_id"], "violation_count": record["count"]}
             for record in result
+            if record["_id"] != "Unknown"
         ]
 
         return JSONResponse(
@@ -761,6 +747,89 @@ async def get_daily_violation_counts():
             status_code=500,
             detail=f"Error retrieving daily violation counts: {e}"
         )
+    
+
+
+@router.get("/violations-daily-custom-range")
+async def get_violations_by_custom_range(
+    start_date: datetime = Query(..., description="Start date-time in ISO format (e.g., 2025-07-01T00:00:00)"),
+    end_date: datetime = Query(..., description="End date-time in ISO format (e.g., 2025-07-27T23:59:59)")
+):
+    """
+    API to fetch the total number of each violation per day within a custom date-time range.
+    """
+    try:
+        # Validate input
+        if start_date >= end_date:
+            raise HTTPException(status_code=400, detail="start_date must be earlier than end_date")
+
+        # MongoDB aggregation pipeline
+        pipeline = [
+            {
+                "$match": {
+                    "createdAt": {
+                        "$gte": start_date,
+                        "$lte": end_date,
+                    }
+                }
+            },
+            {
+                "$unwind": "$violations"
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}},
+                        "violation_type": "$violations",
+                    },
+                    "count": {"$sum": 1},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id.date",
+                    "violations": {
+                        "$push": {
+                            "violation_type": "$_id.violation_type",
+                            "count": "$count",
+                        }
+                    }
+                }
+            },
+            {
+                "$sort": {"_id": 1}
+            }
+        ]
+
+        # Execute the pipeline
+        result = list(collections.get("violations").aggregate(pipeline))
+
+        if not result:
+            return JSONResponse(content={"message": "No data found in the selected range", "data": {}})
+
+        # Convert UTC to PST
+        data = []
+        for entry in result:
+            pst_date = convert_utc_to_pst(datetime.strptime(entry["_id"], "%Y-%m-%d"))
+            formatted_date = pst_date.strftime("%Y-%m-%d")
+            data.append({
+                "date": formatted_date,
+                "violations": entry["violations"]
+            })
+
+        return JSONResponse(
+            content={
+                "message": "Violations in custom range retrieved successfully",
+                "data": data
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving violations by custom range: {e}"
+        )
+
 
 
 
